@@ -1,0 +1,23 @@
+TankYouComeAgain (TYCA) - 161 Game 3
+
+Butterfly Feelings:
+---------
+
+How we want the player to feel. Fuck, I don't know.
+
+Mechanics:
+---------
+
+Mostly in:
+
+1. Tank Controls/Movement/Acceleration
+2. Rotating Barrel
+3. Agario-Like Bullets
+4. Scoring
+5. Respawn-on-death
+
+Need to make:
+6. Random Spawning Enemy AI
+7. Menu Structure To Establish Multiplayer Settings (# of Enemy AI that can spawn, what have you)
+8. Lose/Win State (time limited and based on score?)
+9. Other...
