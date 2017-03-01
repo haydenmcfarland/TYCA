@@ -1,0 +1,34 @@
+How To Play TYCA:
+
+
+P2:
+
+W - Forward
+A - Rotate Left
+S - Reverse
+D - Rotate Right
+E - Rotate Barrel
+Space - Shoot
+
+P1:
+
+Similarly:
+ArrowUp
+ArrowLeft
+ArrowDown
+ArrowRight
+/ - Rotate Barrel
+Enter - Shoot
+
+Can Use GamePad For Both:
+
+If Buffalo SNES GAMEPAD:
+
+Shoot - A
+Rotate Barrel - B
+Forward - X
+Reverse - Y
+Rotate Left - Left Shoulder
+Rotate Right - Right Shoulder
+
+Otherwise, may need to rewrite controls in Unity.

@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 
-public class Change_Level : MonoBehaviour {
+public class ChangeLevel : MonoBehaviour {
 
     public void Restart()
     {

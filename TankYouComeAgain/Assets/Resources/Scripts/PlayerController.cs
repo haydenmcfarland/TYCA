@@ -1,14 +1,23 @@
 ﻿using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour {
 
+    /* public for initialization or access*/
     public string playerNum;
-    public string bulletName;
     public float fireRate = 1.0f;
-    int health = 3;
+    public string bulletName;
+    public int deaths = 0;
+    public int health = 3;
+    public Vector2 SpawnLocation;
+
+    /* prefabs */
     public GameObject Barrel;
     public GameObject Bullet;
+    public GameObject ScoreBoard;
+
+    /* private */
     float moveStep = 0;
     float rotStep = 0;
     float rotBarrelStep = 0;
@@ -23,14 +32,21 @@ public class PlayerController : MonoBehaviour {
             bulletName = "Bullet1";
         else
             bulletName = "Bullet2";
-
 	}
 
     // Update is called once per frame
     void Update()
     {
         if (health <= 0)
+        {
+            deaths += 1;
+            GameObject clone = (GameObject)Instantiate(gameObject, SpawnLocation, transform.rotation);
+            clone.GetComponent<PlayerController>().health = 3;
+            clone.name = "Player" + playerNum + "_" + deaths.ToString();
+            ScoreBoard.GetComponent<ScoreBoard>().UpdatePlayerScore(playerNum);
             Destroy(gameObject);
+        }
+            
 
         if (Input.GetAxis("Fire" + playerNum) != 0 && !hasFired)
         {
@@ -77,7 +93,7 @@ public class PlayerController : MonoBehaviour {
     {
         isHit = true;
         GetComponent<SpriteRenderer>().color = Color.red;
-        yield return new WaitForSeconds(0.4f);
+        yield return new WaitForSeconds(0.5f);
         GetComponent<SpriteRenderer>().color = Color.white;
         health -= 1;
         isHit = false;
