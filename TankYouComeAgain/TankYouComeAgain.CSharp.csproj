@@ -74,6 +74,18 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Lobby\Scripts\DraggablePanel.cs" />
+    <Compile Include="Assets\Lobby\Scripts\EventSystemChecker.cs" />
+    <Compile Include="Assets\Lobby\Scripts\Lobby\LobbyCountdownPanel.cs" />
+    <Compile Include="Assets\Lobby\Scripts\Lobby\LobbyHook.cs" />
+    <Compile Include="Assets\Lobby\Scripts\Lobby\LobbyInfoPanel.cs" />
+    <Compile Include="Assets\Lobby\Scripts\Lobby\LobbyMainMenu.cs" />
+    <Compile Include="Assets\Lobby\Scripts\Lobby\LobbyManager.cs" />
+    <Compile Include="Assets\Lobby\Scripts\Lobby\LobbyPlayer.cs" />
+    <Compile Include="Assets\Lobby\Scripts\Lobby\LobbyPlayerList.cs" />
+    <Compile Include="Assets\Lobby\Scripts\Lobby\LobbyServerEntry.cs" />
+    <Compile Include="Assets\Lobby\Scripts\Lobby\LobbyServerList.cs" />
+    <Compile Include="Assets\Lobby\Scripts\Lobby\LobbyTopPanel.cs" />
     <Compile Include="Assets\PixelPerfectCamera\Scripts\CanvasScreenSpaceScaler.cs" />
     <Compile Include="Assets\PixelPerfectCamera\Scripts\CanvasWorldScaler.cs" />
     <Compile Include="Assets\PixelPerfectCamera\Scripts\Internal\VectorSwizzleExtensions.cs" />
@@ -81,9 +93,8 @@
     <Compile Include="Assets\PixelPerfectCamera\Scripts\PixelSnap.cs" />
     <Compile Include="Assets\PixelPerfectCamera\Scripts\Scroller.cs" />
     <Compile Include="Assets\Resources\Scripts\BulletController.cs" />
-    <Compile Include="Assets\Resources\Scripts\ChangeLevel.cs" />
     <Compile Include="Assets\Resources\Scripts\Navigator.cs" />
-    <Compile Include="Assets\Resources\Scripts\PlayerController.cs" />
+    <Compile Include="Assets\Resources\Scripts\Player.cs" />
     <Compile Include="Assets\Resources\Scripts\ScoreBoard.cs" />
     <Compile Include="Assets\Tiled2Unity\Scripts\Runtime\CircleObject.cs" />
     <Compile Include="Assets\Tiled2Unity\Scripts\Runtime\ImportBehaviour.cs" />
@@ -102,6 +113,9 @@
     <Compile Include="Assets\Tiled2Unity\Scripts\Runtime\TmxObject.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Assets\Fonts\OpenSans\License!.txt" />
+    <None Include="Assets\Lobby\Documentation.txt" />
+    <None Include="Assets\Lobby\Instruction.txt" />
     <None Include="Assets\PixelPerfectCamera\README.txt" />
     <None Include="Assets\PixelPerfectCamera\background_art_license.txt" />
     <None Include="Assets\Resources\howtoplay.txt" />
