@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
@@ -9,6 +10,7 @@ public class Player : NetworkBehaviour {
     public int id;
     public float fireRate = 1.0f;
     public int deaths = 0;
+    [SyncVar]
     public int health = 3;
     public KeyCode left = KeyCode.A;
     public KeyCode right = KeyCode.D;
@@ -16,13 +18,14 @@ public class Player : NetworkBehaviour {
     public KeyCode down = KeyCode.S;
     public KeyCode fire = KeyCode.Space;
     public KeyCode rotateBarrel = KeyCode.X;
-    public float rotationSpeed = 35f;
+    public float rotationSpeed = 25f;
     public float velocity = 0f;
-    public float moveSpeed = 10f;
+    public float moveSpeed = 5f;
+    public float projectileSpeed = 1f;
 
     /* prefabs */
-    public GameObject Barrel;
-    public GameObject Bullet;
+    public GameObject barrel;
+    public GameObject projectile;
     public GameObject ScoreBoard;
 
     /* private */
@@ -31,20 +34,26 @@ public class Player : NetworkBehaviour {
     bool isHit = false;
 
     // Use this for initialization
-    void Start () {
+    void Start() {
 
-	}
+    }
 
     // Update is called once per frame
-    void Update()
-    {
-        if (health <= 0)
-        {
+    void Update() {
+        if (health <= 0) {
             // death code goes here
         }
         GetMovement();
         HandleFire();
 
+    }
+
+    [Command]
+    void CmdFire() {
+        GameObject instantiatedProjectile = (GameObject)Instantiate(projectile, barrel.transform.position, Quaternion.identity);
+        instantiatedProjectile.GetComponent<Rigidbody2D>().velocity = barrel.transform.up * projectileSpeed;
+        instantiatedProjectile.GetComponent<Projectile>().assignedID = id;
+        NetworkServer.Spawn(instantiatedProjectile);
     }
     private void GetMovement() {
         if (Input.GetKey(left)) { // click left
@@ -73,9 +82,7 @@ public class Player : NetworkBehaviour {
     private void HandleFire() {
         if (Input.GetKeyDown(fire) && !hasFired) {
             hasFired = !hasFired;
-            Vector3 start = Barrel.transform.position + Barrel.transform.up;
-            GameObject bullet = Instantiate(Bullet, start, Barrel.transform.rotation);
-            bullet.GetComponent<Rigidbody2D>().velocity = Barrel.transform.up * Time.deltaTime * 300;
+            CmdFire();
             StartCoroutine(BulletWaitTime());
         }
 
@@ -83,25 +90,21 @@ public class Player : NetworkBehaviour {
             rotBarrelStep = Time.deltaTime * 200;
         else
             rotBarrelStep = 0;
-        Barrel.transform.Rotate(0, 0, rotBarrelStep);
+        barrel.transform.Rotate(0, 0, rotBarrelStep);
     }
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        if (!isHit)
-        {
+    private void OnCollisionEnter2D(Collision2D collision) {
+        if (!isHit) {
             Destroy(collision.gameObject);
             StartCoroutine(Flash());
         }
     }
 
-    IEnumerator BulletWaitTime()
-    {
+    IEnumerator BulletWaitTime() {
         yield return new WaitForSeconds(fireRate);
         hasFired = false;
     }
 
-    IEnumerator Flash()
-    {
+    IEnumerator Flash() {
         isHit = true;
         GetComponent<SpriteRenderer>().color = Color.red;
         yield return new WaitForSeconds(0.5f);
