@@ -5,11 +5,15 @@ using UnityEngine.Networking;
 using UnityEngine.UI;
 
 public class Player : NetworkBehaviour {
-
+    public const int NUM_ABILITIES = 4;
+    public const float GLOBAL_COOLDOWN = 0.5f;
     /* public for initialization or access*/
     public int id;
     public float fireRate = 1.0f;
     public int deaths = 0;
+    public float[] abilityCooldowns = new float[NUM_ABILITIES];
+    public float[] abilityTimers = new float[NUM_ABILITIES];
+    
     [SyncVar]
     public int health = 3;
     public KeyCode left = KeyCode.A;
@@ -17,7 +21,7 @@ public class Player : NetworkBehaviour {
     public KeyCode up = KeyCode.W;
     public KeyCode down = KeyCode.S;
     public KeyCode fire = KeyCode.Space;
-    public KeyCode rotateBarrel = KeyCode.X;
+    public KeyCode[] ability;
     public float rotationSpeed = 25f;
     public float velocity = 0f;
     public float moveSpeed = 5f;
@@ -26,16 +30,22 @@ public class Player : NetworkBehaviour {
     /* prefabs */
     public GameObject barrel;
     public GameObject projectile;
-    public GameObject ScoreBoard;
 
     /* private */
-    float rotBarrelStep = 0;
     bool hasFired = false;
     bool isHit = false;
+    float[] currAbilityCooldowns = new float[NUM_ABILITIES];
+    Image[] abilityCD = new Image[NUM_ABILITIES];
+    Text[] abilityCDText = new Text[NUM_ABILITIES];
 
     // Use this for initialization
     void Start() {
-
+        for(int i = 0; i < NUM_ABILITIES; ++i) {
+            abilityTimers[i] = 0;
+            currAbilityCooldowns[i] = abilityCooldowns[i];
+            abilityCD[i] = GameObject.Find("Canvas/HUD/Ability " + (i + 1) + "/Cooldown").GetComponent<Image>();
+            abilityCDText[i] = GameObject.Find("Canvas/HUD/Ability " + (i + 1) + "/Cooldown Text").GetComponent<Text>();
+        }
     }
 
     // Update is called once per frame
@@ -45,7 +55,7 @@ public class Player : NetworkBehaviour {
         }
         GetMovement();
         HandleFire();
-
+        HandleAbilities();
     }
 
     [Command]
@@ -56,7 +66,7 @@ public class Player : NetworkBehaviour {
         NetworkServer.Spawn(instantiatedProjectile);
     }
     private void GetMovement() {
-        if (Input.GetKey(left)) { // click left
+        if (Input.GetKey(left)) {
             float turnVelocity = Mathf.Max(rotationSpeed, rotationSpeed * velocity * 0.1f);
             transform.Rotate(new Vector3(0.0f, 0.0f, turnVelocity * Time.deltaTime));
         }
@@ -85,12 +95,32 @@ public class Player : NetworkBehaviour {
             CmdFire();
             StartCoroutine(BulletWaitTime());
         }
+    }
 
-        if (Input.GetKeyDown(rotateBarrel))
-            rotBarrelStep = Time.deltaTime * 200;
-        else
-            rotBarrelStep = 0;
-        barrel.transform.Rotate(0, 0, rotBarrelStep);
+    private void HandleAbilities() {
+        for(int i = 0; i < NUM_ABILITIES; ++i) {
+            if (Input.GetKeyDown(ability[i]) && abilityTimers[i] <= 0) {
+                for (int j = 0; j < NUM_ABILITIES; ++j) {
+                    if(i != j && abilityTimers[j] <= 0) {
+                        abilityTimers[j] = GLOBAL_COOLDOWN;
+                        currAbilityCooldowns[j] = GLOBAL_COOLDOWN;
+                    }
+                }
+                abilityTimers[i] = abilityCooldowns[i];
+                // ability code goes here
+            }
+            if (abilityTimers[i] >= 0) {
+                abilityTimers[i] -= Time.deltaTime;
+                abilityCD[i].fillAmount = abilityTimers[i] / currAbilityCooldowns[i];
+                abilityCDText[i].text = "" + (int)abilityTimers[i];
+                if(abilityCDText[i].text == "0") {
+                    abilityCDText[i].text = "";
+                }
+            } else {
+                currAbilityCooldowns[i] = abilityCooldowns[i];
+                abilityCDText[i].text = "";
+            }
+        }
     }
     private void OnCollisionEnter2D(Collision2D collision) {
         if (!isHit) {
