@@ -17,7 +17,7 @@ public class Projectile : NetworkBehaviour {
     }
 
     void OnCollisionEnter2D(Collision2D collision) {
-        if (collision.gameObject.CompareTag("Player")) {
+        if (collision.gameObject.CompareTag("Player") && collision.gameObject.GetComponent<Player>().id != assignedID) {
             if (isServer) {
                 collision.gameObject.GetComponent<Player>().health--;
             }

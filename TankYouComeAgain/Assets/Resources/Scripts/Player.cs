@@ -46,6 +46,7 @@ public class Player : NetworkBehaviour {
             abilityCD[i] = GameObject.Find("Canvas/HUD/Ability " + (i + 1) + "/Cooldown").GetComponent<Image>();
             abilityCDText[i] = GameObject.Find("Canvas/HUD/Ability " + (i + 1) + "/Cooldown Text").GetComponent<Text>();
         }
+        id = Game.instance.RegisterPlayer(this);
     }
 
     // Update is called once per frame
@@ -80,11 +81,7 @@ public class Player : NetworkBehaviour {
         } else if (Input.GetKey(down)) {
             velocity = Mathf.Max(-moveSpeed * (1 + (rotationSpeed)) / 2f, velocity - moveSpeed * .85f * Time.deltaTime);
         } else {
-            if (velocity > 0) {
-                velocity = Mathf.Max(0f, velocity - moveSpeed / 2f * Time.deltaTime);
-            } else if (velocity < 0) {
-                velocity = Mathf.Min(0f, velocity + moveSpeed / 2f * Time.deltaTime);
-            }
+            velocity = 0;
         }
         transform.Translate(0.0f, velocity * Time.deltaTime, 0.0f);
     }
