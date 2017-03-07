@@ -123,7 +123,8 @@ public class Player : NetworkBehaviour {
         }
     }
     private void OnCollisionEnter2D(Collision2D collision) {
-        if (!isHit) {
+
+        if (!isHit && collision.transform.name.Contains("Projectile")) {
             Destroy(collision.gameObject);
             StartCoroutine(Flash());
         }

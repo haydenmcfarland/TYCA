@@ -55,9 +55,6 @@
     <Reference Include="UnityEditor">
       <HintPath>Library\UnityAssemblies\UnityEditor.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.Advertisements">
-      <HintPath>Library\UnityAssemblies\UnityEngine.Advertisements.dll</HintPath>
-    </Reference>
     <Reference Include="UnityEditor.Advertisements">
       <HintPath>Library\UnityAssemblies\UnityEditor.Advertisements.dll</HintPath>
     </Reference>
@@ -99,9 +96,6 @@
     </Reference>
     <Reference Include="UnityEngine.HoloLens">
       <HintPath>Library\UnityAssemblies\UnityEngine.HoloLens.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.Purchasing">
-      <HintPath>Library\UnityAssemblies\UnityEngine.Purchasing.dll</HintPath>
     </Reference>
     <Reference Include="UnityEditor.VR">
       <HintPath>Library\UnityAssemblies\UnityEditor.VR.dll</HintPath>
@@ -147,6 +141,9 @@
     <Compile Include="Assets\Tiled2Unity\Scripts\Editor\TiledAssetPostProcessor.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Assets\Fonts\OpenSans\License!.txt" />
+    <None Include="Assets\Lobby\Documentation.txt" />
+    <None Include="Assets\Lobby\Instruction.txt" />
     <None Include="Assets\PixelPerfectCamera\README.txt" />
     <None Include="Assets\PixelPerfectCamera\background_art_license.txt" />
     <None Include="Assets\Resources\howtoplay.txt" />
