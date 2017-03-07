@@ -11,6 +11,7 @@ public class Player : NetworkBehaviour {
     public int id;
     public float fireRate = 1.0f;
     public int deaths = 0;
+    public float shieldTime = 3f;
     public float[] abilityCooldowns = new float[NUM_ABILITIES];
     public float[] abilityTimers = new float[NUM_ABILITIES];
     
@@ -29,11 +30,13 @@ public class Player : NetworkBehaviour {
 
     /* prefabs */
     public GameObject barrel;
+    public GameObject body;
     public GameObject projectile;
+    public GameObject shield;
 
     /* private */
     bool hasFired = false;
-    bool isHit = false;
+    bool invulnerable = false;
     float[] currAbilityCooldowns = new float[NUM_ABILITIES];
     Image[] abilityCD = new Image[NUM_ABILITIES];
     Text[] abilityCDText = new Text[NUM_ABILITIES];
@@ -47,6 +50,7 @@ public class Player : NetworkBehaviour {
             abilityCDText[i] = GameObject.Find("Canvas/HUD/Ability " + (i + 1) + "/Cooldown Text").GetComponent<Text>();
         }
         id = Game.instance.RegisterPlayer(this);
+        shield.SetActive(false);
     }
 
     // Update is called once per frame
@@ -65,6 +69,11 @@ public class Player : NetworkBehaviour {
         instantiatedProjectile.GetComponent<Rigidbody2D>().velocity = barrel.transform.up * projectileSpeed;
         instantiatedProjectile.GetComponent<Projectile>().assignedID = id;
         NetworkServer.Spawn(instantiatedProjectile);
+    }
+
+    [Command]
+    void CmdActivateShield() {
+        StartCoroutine(Shield());
     }
     private void GetMovement() {
         if (Input.GetKey(left)) {
@@ -105,6 +114,7 @@ public class Player : NetworkBehaviour {
                 }
                 abilityTimers[i] = abilityCooldowns[i];
                 // ability code goes here
+                ActivateAbility(i);
             }
             if (abilityTimers[i] >= 0) {
                 abilityTimers[i] -= Time.deltaTime;
@@ -119,10 +129,26 @@ public class Player : NetworkBehaviour {
             }
         }
     }
+
+    private void ActivateAbility(int index) {
+        switch (index) {
+            case 0:
+                break;
+            case 1:
+                CmdActivateShield();
+                break;
+            case 2:
+                break;
+            case 3:
+                break;
+            default:
+                break;
+        }
+    }
+
     private void OnCollisionEnter2D(Collision2D collision) {
 
-        if (!isHit && collision.transform.name.Contains("Projectile")) {
-            Destroy(collision.gameObject);
+        if (!invulnerable && collision.gameObject.CompareTag("Projectile")) {
             StartCoroutine(Flash());
         }
     }
@@ -133,12 +159,20 @@ public class Player : NetworkBehaviour {
     }
 
     IEnumerator Flash() {
-        isHit = true;
-        GetComponent<SpriteRenderer>().color = Color.red;
+        invulnerable = true;
+        body.GetComponent<SpriteRenderer>().color = Color.red;
         yield return new WaitForSeconds(0.5f);
-        GetComponent<SpriteRenderer>().color = Color.white;
+        body.GetComponent<SpriteRenderer>().color = Color.white;
         health -= 1;
-        isHit = false;
+        invulnerable = false;
+    }
+
+    IEnumerator Shield() {
+        shield.SetActive(true);
+        invulnerable = true;
+        yield return new WaitForSeconds(shieldTime);
+        invulnerable = false;
+        shield.SetActive(false);
     }
 }
 
