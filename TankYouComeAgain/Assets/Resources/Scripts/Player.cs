@@ -12,6 +12,9 @@ public class Player : NetworkBehaviour {
     public float fireRate = 1.0f;
     public int deaths = 0;
     public float shieldTime = 3f;
+    public float ultiMoveMultiplier = 3f;
+    public float ultimateDuration = 15f;
+    public float ultimateFireRate = 0.1f;
     public float[] abilityCooldowns = new float[NUM_ABILITIES];
     public float[] abilityTimers = new float[NUM_ABILITIES];
     
@@ -74,6 +77,10 @@ public class Player : NetworkBehaviour {
     [Command]
     void CmdActivateShield() {
         StartCoroutine(Shield());
+    }
+    [Command]
+    void CmdActivateUltimate() {
+        StartCoroutine(Ultimate());
     }
     private void GetMovement() {
         if (Input.GetKey(left)) {
@@ -140,6 +147,7 @@ public class Player : NetworkBehaviour {
             case 2:
                 break;
             case 3:
+                CmdActivateUltimate();
                 break;
             default:
                 break;
@@ -148,7 +156,7 @@ public class Player : NetworkBehaviour {
 
     private void OnCollisionEnter2D(Collision2D collision) {
 
-        if (!invulnerable && collision.gameObject.CompareTag("Projectile")) {
+        if (!invulnerable && collision.gameObject.CompareTag("Projectile") && collision.gameObject.GetComponent<Projectile>().assignedID != id) {
             StartCoroutine(Flash());
         }
     }
@@ -173,6 +181,16 @@ public class Player : NetworkBehaviour {
         yield return new WaitForSeconds(shieldTime);
         invulnerable = false;
         shield.SetActive(false);
+    }
+
+    IEnumerator Ultimate() {
+        moveSpeed *= ultiMoveMultiplier;
+        rotationSpeed *= ultiMoveMultiplier;
+        InvokeRepeating("CmdFire", 0, ultimateFireRate);
+        yield return new WaitForSeconds(ultimateDuration);
+        CancelInvoke();
+        moveSpeed /= ultiMoveMultiplier;
+        rotationSpeed /= ultiMoveMultiplier;
     }
 }
 
