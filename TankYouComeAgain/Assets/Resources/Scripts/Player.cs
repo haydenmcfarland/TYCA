@@ -7,6 +7,7 @@ using UnityEngine.UI;
 public class Player : NetworkBehaviour {
     public const int NUM_ABILITIES = 4;
     public const float GLOBAL_COOLDOWN = 0.5f;
+    public const float MAX_HEALTH = 100f;
     /* public for initialization or access*/
     public int id;
     public float fireRate = 1.0f;
@@ -16,37 +17,40 @@ public class Player : NetworkBehaviour {
     public float ultimateDuration = 15f;
     public float ultimateFireRate = 0.1f;
     public float[] abilityCooldowns = new float[NUM_ABILITIES];
-    public float[] abilityTimers = new float[NUM_ABILITIES];
-    
     [SyncVar]
-    public int health = 3;
+    public float health = MAX_HEALTH;
     public KeyCode left = KeyCode.A;
     public KeyCode right = KeyCode.D;
     public KeyCode up = KeyCode.W;
     public KeyCode down = KeyCode.S;
-    public KeyCode fire = KeyCode.Space;
     public KeyCode[] ability;
     public float rotationSpeed = 25f;
     public float velocity = 0f;
     public float moveSpeed = 5f;
     public float projectileSpeed = 1f;
+    public bool canMove = true;
+    public float stunTime = 5f;
+    public bool invulnerable = false;
 
     /* prefabs */
-    public GameObject barrel;
+    public GameObject spawnPoint;
     public GameObject body;
     public GameObject projectile;
+    public GameObject grenade;
     public GameObject shield;
 
     /* private */
-    bool hasFired = false;
-    bool invulnerable = false;
     float[] currAbilityCooldowns = new float[NUM_ABILITIES];
+    float[] abilityTimers = new float[NUM_ABILITIES];
     Image[] abilityCD = new Image[NUM_ABILITIES];
     Text[] abilityCDText = new Text[NUM_ABILITIES];
+    Rigidbody2D rb;
+    GameObject healthBar;
+    RectTransform healthBarRect;
 
     // Use this for initialization
     void Start() {
-        for(int i = 0; i < NUM_ABILITIES; ++i) {
+        for (int i = 0; i < NUM_ABILITIES; ++i) {
             abilityTimers[i] = 0;
             currAbilityCooldowns[i] = abilityCooldowns[i];
             abilityCD[i] = GameObject.Find("Canvas/HUD/Ability " + (i + 1) + "/Cooldown").GetComponent<Image>();
@@ -54,6 +58,9 @@ public class Player : NetworkBehaviour {
         }
         id = Game.instance.RegisterPlayer(this);
         shield.SetActive(false);
+        rb = GetComponent<Rigidbody2D>();
+        healthBar = GameObject.Find("Canvas/HUD/Health Bar");
+        healthBarRect = healthBar.GetComponent<RectTransform>();
     }
 
     // Update is called once per frame
@@ -61,17 +68,27 @@ public class Player : NetworkBehaviour {
         if (health <= 0) {
             // death code goes here
         }
-        GetMovement();
-        HandleFire();
+        if (canMove) {
+            GetMovement();
+        }
         HandleAbilities();
+    }
+    void UpdateHealthBarUI() {
+        healthBarRect.anchorMax = new Vector2(healthBarRect.anchorMin.x + 0.35f * (health) / MAX_HEALTH, healthBarRect.anchorMax.y);
+    }
+    [Command]
+    void CmdFire() {
+        GameObject instantiatedProjectile = (GameObject)Instantiate(projectile, spawnPoint.transform.position, Quaternion.identity);
+        instantiatedProjectile.GetComponent<Rigidbody2D>().velocity = spawnPoint.transform.up * projectileSpeed;
+        instantiatedProjectile.GetComponent<Projectile>().assignedID = id;
+        NetworkServer.Spawn(instantiatedProjectile);
     }
 
     [Command]
-    void CmdFire() {
-        GameObject instantiatedProjectile = (GameObject)Instantiate(projectile, barrel.transform.position, Quaternion.identity);
-        instantiatedProjectile.GetComponent<Rigidbody2D>().velocity = barrel.transform.up * projectileSpeed;
-        instantiatedProjectile.GetComponent<Projectile>().assignedID = id;
-        NetworkServer.Spawn(instantiatedProjectile);
+    void CmdFireGrenade() {
+        GameObject instantiatedGrenade = (GameObject)Instantiate(grenade, spawnPoint.transform.position, Quaternion.identity);
+        instantiatedGrenade.GetComponent<Rigidbody2D>().velocity = spawnPoint.transform.up * projectileSpeed;
+        NetworkServer.Spawn(instantiatedGrenade);
     }
 
     [Command]
@@ -102,19 +119,11 @@ public class Player : NetworkBehaviour {
         transform.Translate(0.0f, velocity * Time.deltaTime, 0.0f);
     }
 
-    private void HandleFire() {
-        if (Input.GetKeyDown(fire) && !hasFired) {
-            hasFired = !hasFired;
-            CmdFire();
-            StartCoroutine(BulletWaitTime());
-        }
-    }
-
     private void HandleAbilities() {
-        for(int i = 0; i < NUM_ABILITIES; ++i) {
-            if (Input.GetKeyDown(ability[i]) && abilityTimers[i] <= 0) {
+        for (int i = 0; i < NUM_ABILITIES; ++i) {
+            if (Input.GetKeyDown(ability[i]) && abilityTimers[i] <= 0 && canMove) {
                 for (int j = 0; j < NUM_ABILITIES; ++j) {
-                    if(i != j && abilityTimers[j] <= 0) {
+                    if (i != j && abilityTimers[j] <= 0) {
                         abilityTimers[j] = GLOBAL_COOLDOWN;
                         currAbilityCooldowns[j] = GLOBAL_COOLDOWN;
                     }
@@ -127,7 +136,7 @@ public class Player : NetworkBehaviour {
                 abilityTimers[i] -= Time.deltaTime;
                 abilityCD[i].fillAmount = abilityTimers[i] / currAbilityCooldowns[i];
                 abilityCDText[i].text = "" + (int)abilityTimers[i];
-                if(abilityCDText[i].text == "0") {
+                if (abilityCDText[i].text == "0") {
                     abilityCDText[i].text = "";
                 }
             } else {
@@ -140,11 +149,13 @@ public class Player : NetworkBehaviour {
     private void ActivateAbility(int index) {
         switch (index) {
             case 0:
+                CmdFire();
                 break;
             case 1:
                 CmdActivateShield();
                 break;
             case 2:
+                CmdFireGrenade();
                 break;
             case 3:
                 CmdActivateUltimate();
@@ -154,6 +165,12 @@ public class Player : NetworkBehaviour {
         }
     }
 
+    public void Damage(float damage) {
+        health -= damage;
+        Debug.Log(damage);
+        UpdateHealthBarUI();
+    }
+
     private void OnCollisionEnter2D(Collision2D collision) {
 
         if (!invulnerable && collision.gameObject.CompareTag("Projectile") && collision.gameObject.GetComponent<Projectile>().assignedID != id) {
@@ -161,9 +178,8 @@ public class Player : NetworkBehaviour {
         }
     }
 
-    IEnumerator BulletWaitTime() {
-        yield return new WaitForSeconds(fireRate);
-        hasFired = false;
+    public void Stun() {
+        StartCoroutine(Stunned());
     }
 
     IEnumerator Flash() {
@@ -191,6 +207,14 @@ public class Player : NetworkBehaviour {
         CancelInvoke();
         moveSpeed /= ultiMoveMultiplier;
         rotationSpeed /= ultiMoveMultiplier;
+    }
+
+    IEnumerator Stunned() {
+        canMove = false;
+        rb.velocity = Vector3.zero;
+        CancelInvoke();
+        yield return new WaitForSeconds(stunTime);
+        canMove = true;
     }
 }
 
