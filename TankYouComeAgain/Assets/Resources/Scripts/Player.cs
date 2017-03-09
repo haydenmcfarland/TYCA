@@ -49,6 +49,12 @@ public class Player : NetworkBehaviour {
     RectTransform healthBarRect;
 
     // Use this for initialization
+
+    public override void OnStartLocalPlayer()
+    {
+        Camera.main.GetComponent<CameraFollow>().setTargetTransform(gameObject.transform);
+    }
+
     void Start() {
         for (int i = 0; i < NUM_ABILITIES; ++i) {
             abilityTimers[i] = 0;
@@ -116,6 +122,7 @@ public class Player : NetworkBehaviour {
         } else {
             velocity = 0;
         }
+
         transform.Translate(0.0f, velocity * Time.deltaTime, 0.0f);
     }
 
