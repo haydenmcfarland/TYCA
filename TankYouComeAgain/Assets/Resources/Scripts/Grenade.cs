@@ -1,8 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
-public class Grenade : MonoBehaviour {
+public class Grenade : NetworkBehaviour {
     public float lifetime = 5f;
     public float radius = 2f;
     public float damage = 25f;

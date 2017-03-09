@@ -53,26 +53,29 @@ public class Player : NetworkBehaviour {
     public override void OnStartLocalPlayer()
     {
         Camera.main.GetComponent<CameraFollow>().setTargetTransform(gameObject.transform);
-    }
-
-    void Start() {
         for (int i = 0; i < NUM_ABILITIES; ++i) {
             abilityTimers[i] = 0;
             currAbilityCooldowns[i] = abilityCooldowns[i];
             abilityCD[i] = GameObject.Find("Canvas/HUD/Ability " + (i + 1) + "/Cooldown").GetComponent<Image>();
             abilityCDText[i] = GameObject.Find("Canvas/HUD/Ability " + (i + 1) + "/Cooldown Text").GetComponent<Text>();
         }
+        healthBar = GameObject.Find("Canvas/HUD/Health Bar");
+        healthBarRect = healthBar.GetComponent<RectTransform>();
+    }
+
+    void Start() {
         id = Game.instance.RegisterPlayer(this);
         shield.SetActive(false);
         rb = GetComponent<Rigidbody2D>();
-        healthBar = GameObject.Find("Canvas/HUD/Health Bar");
-        healthBarRect = healthBar.GetComponent<RectTransform>();
     }
 
     // Update is called once per frame
     void Update() {
         if (health <= 0) {
             // death code goes here
+        }
+        if (!isLocalPlayer) {
+            return;
         }
         if (canMove) {
             GetMovement();
@@ -174,8 +177,9 @@ public class Player : NetworkBehaviour {
 
     public void Damage(float damage) {
         health -= damage;
-        Debug.Log(damage);
-        UpdateHealthBarUI();
+        if (isLocalPlayer) {
+            UpdateHealthBarUI();
+        }
     }
 
     private void OnCollisionEnter2D(Collision2D collision) {
