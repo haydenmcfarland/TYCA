@@ -9,8 +9,11 @@ public class Player : NetworkBehaviour {
     public const float GLOBAL_COOLDOWN = 0.5f;
     public const float MAX_HEALTH = 100f;
     /* public for initialization or access*/
+    [SyncVar]
     public int id;
+    [SyncVar]
     public float fireRate = 1.0f;
+    [SyncVar]
     public int deaths = 0;
     public float shieldTime = 3f;
     public float ultiMoveMultiplier = 3f;
@@ -25,11 +28,14 @@ public class Player : NetworkBehaviour {
     public KeyCode down = KeyCode.S;
     public KeyCode[] ability;
     public float rotationSpeed = 25f;
+    [SyncVar]
     public float velocity = 0f;
     public float moveSpeed = 5f;
     public float projectileSpeed = 1f;
+    [SyncVar]
     public bool canMove = true;
     public float stunTime = 5f;
+    [SyncVar]
     public bool invulnerable = false;
 
     /* prefabs */
@@ -47,6 +53,8 @@ public class Player : NetworkBehaviour {
     Rigidbody2D rb;
     GameObject healthBar;
     RectTransform healthBarRect;
+    [SyncVar]
+    bool shielded;
 
     // Use this for initialization
 
@@ -74,6 +82,7 @@ public class Player : NetworkBehaviour {
         if (health <= 0) {
             // death code goes here
         }
+        UpdateSprites();
         if (!isLocalPlayer) {
             return;
         }
@@ -81,6 +90,7 @@ public class Player : NetworkBehaviour {
             GetMovement();
         }
         HandleAbilities();
+        UpdateHealthBarUI();
     }
     void UpdateHealthBarUI() {
         healthBarRect.anchorMax = new Vector2(healthBarRect.anchorMin.x + 0.35f * (health) / MAX_HEALTH, healthBarRect.anchorMax.y);
@@ -174,12 +184,14 @@ public class Player : NetworkBehaviour {
                 break;
         }
     }
+    [Command]
+    void CmdDamage(float damage) {
+        health -= damage;
+        health = Mathf.Clamp(health, 0, health);
+    }
 
     public void Damage(float damage) {
-        health -= damage;
-        if (isLocalPlayer) {
-            UpdateHealthBarUI();
-        }
+        CmdDamage(damage);
     }
 
     private void OnCollisionEnter2D(Collision2D collision) {
@@ -193,21 +205,24 @@ public class Player : NetworkBehaviour {
         StartCoroutine(Stunned());
     }
 
+    void UpdateSprites() {
+        shield.SetActive(shielded);
+    }
+
     IEnumerator Flash() {
         invulnerable = true;
         body.GetComponent<SpriteRenderer>().color = Color.red;
         yield return new WaitForSeconds(0.5f);
         body.GetComponent<SpriteRenderer>().color = Color.white;
-        health -= 1;
         invulnerable = false;
     }
 
     IEnumerator Shield() {
-        shield.SetActive(true);
+        shielded = true;
         invulnerable = true;
         yield return new WaitForSeconds(shieldTime);
         invulnerable = false;
-        shield.SetActive(false);
+        shielded = false;
     }
 
     IEnumerator Ultimate() {
