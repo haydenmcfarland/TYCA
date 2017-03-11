@@ -9,7 +9,7 @@ public class Game : MonoBehaviour {
     public static Game instance;
     public KeyCode exit = KeyCode.Escape;
     public Player[] players = new Player[MAX_PLAYERS];
-    public int currIndex = 0;
+    int currIndex = 0;
 
 	// Use this for initialization
 	void Start () {

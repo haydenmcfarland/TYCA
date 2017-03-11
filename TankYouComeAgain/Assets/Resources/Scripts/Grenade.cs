@@ -7,6 +7,7 @@ public class Grenade : NetworkBehaviour {
     public float lifetime = 5f;
     public float radius = 2f;
     public float damage = 25f;
+    public Player owner;
     ParticleSystem ps;
     Rigidbody2D rb;
 	// Use this for initialization
@@ -22,10 +23,10 @@ public class Grenade : NetworkBehaviour {
 	}
 
     void OnCollisionEnter2D(Collision2D col) {
-        if (col.gameObject.CompareTag("Player") && !col.gameObject.GetComponentInParent<Player>().invulnerable) {
+        if (col.gameObject.CompareTag("Player") && !col.gameObject.GetComponentInParent<Player>().invulnerable && col.gameObject.GetComponentInParent<Player>()!= owner) {
             Player p = col.gameObject.GetComponentInParent<Player>();
             p.Stun();
-            p.Damage(damage);
+            p.Damage(damage, owner);
             Destroy(gameObject);
         }
     }
@@ -34,11 +35,10 @@ public class Grenade : NetworkBehaviour {
         yield return new WaitForSeconds(lifetime);
         Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, radius);
         foreach (Collider2D hit in hits) {
-            Debug.Log(hit);
-            if (hit.gameObject.CompareTag("Player") && !hit.gameObject.GetComponentInParent<Player>().invulnerable) {
+            if (hit.gameObject.CompareTag("Player") && !hit.gameObject.GetComponentInParent<Player>().invulnerable && hit.gameObject.GetComponentInParent<Player>() != owner) {
                 Player p = hit.gameObject.GetComponentInParent<Player>();
                 p.Stun();
-                p.Damage(damage);
+                p.Damage(damage, owner);
             }
         }
         rb.velocity = Vector3.zero;

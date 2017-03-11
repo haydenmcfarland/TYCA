@@ -5,7 +5,7 @@ using UnityEngine.Networking;
 public class Projectile : NetworkBehaviour {
     public float lifetime;
     public float damage = 10.0f;
-    public int assignedID = -1;
+    public Player owner;
     ParticleSystem particleSys;
 
     // Use this for initialization
@@ -19,10 +19,10 @@ public class Projectile : NetworkBehaviour {
     }
 
     void OnCollisionEnter2D(Collision2D collision) {
-        if (collision.gameObject.CompareTag("Player") && collision.gameObject.GetComponent<Player>().id != assignedID) {
+        if (collision.gameObject.CompareTag("Player") && collision.gameObject.GetComponent<Player>() != owner) {
             if (isServer) {
                 Player p = collision.gameObject.GetComponent<Player>();
-                p.Damage(damage);
+                p.Damage(damage, owner);
             }
         }
 

@@ -22,6 +22,8 @@ public class Player : NetworkBehaviour {
     public bool invulnerable = false;
     [SyncVar]
     public bool canMove = true;
+    [SyncVar]
+    public string broadcast;
     public float velocity = 0f;
     public float deathTime = 5f;
     public float shieldTime = 3f;
@@ -46,6 +48,7 @@ public class Player : NetworkBehaviour {
     public GameObject body;
     public GameObject projectile;
     public GameObject grenade;
+    public GameObject deathFlag;
     public GameObject shield;
 
 
@@ -59,9 +62,8 @@ public class Player : NetworkBehaviour {
     RectTransform healthBarRect;
     GameObject deathOverlay;
     Text deathText;
+    Text broadcastText;
     GameObject model;
-
-    ParticleSystem ps;
     NetworkStartPosition[] spawnPoints;
     [SyncVar]
     bool shielded;
@@ -88,11 +90,13 @@ public class Player : NetworkBehaviour {
     }
 
     void Start() {
-        id = Game.instance.RegisterPlayer(this);
+        if (isServer) {
+            id = Game.instance.RegisterPlayer(this);
+        }
         shield.SetActive(false);
         rb = GetComponent<Rigidbody2D>();
         model = transform.Find("Model").gameObject;
-        ps = GetComponent<ParticleSystem>();
+        broadcastText = GameObject.Find("Canvas/Broadcast").GetComponent<Text>();
     }
 
     // Update is called once per frame
@@ -128,16 +132,26 @@ public class Player : NetworkBehaviour {
     [Command]
     void CmdFire() {
         GameObject instantiatedProjectile = (GameObject)Instantiate(projectile, spawnPoint.transform.position, Quaternion.identity);
-        instantiatedProjectile.GetComponent<Rigidbody2D>().velocity = spawnPoint.transform.up * projectileSpeed;
-        instantiatedProjectile.GetComponent<Projectile>().assignedID = id;
+        Rigidbody2D prb = instantiatedProjectile.GetComponent<Rigidbody2D>();
+        prb.velocity = spawnPoint.transform.up * projectileSpeed;
+        prb.velocity += rb.velocity;
+        instantiatedProjectile.GetComponent<Projectile>().owner = this;
         NetworkServer.Spawn(instantiatedProjectile);
     }
 
     [Command]
     void CmdFireGrenade() {
         GameObject instantiatedGrenade = (GameObject)Instantiate(grenade, spawnPoint.transform.position, Quaternion.identity);
-        instantiatedGrenade.GetComponent<Rigidbody2D>().velocity = spawnPoint.transform.up * projectileSpeed;
+        Rigidbody2D prb = instantiatedGrenade.GetComponent<Rigidbody2D>();
+        prb.velocity = spawnPoint.transform.up * projectileSpeed;
+        prb.velocity += rb.velocity;
+        instantiatedGrenade.GetComponent<Grenade>().owner = this;
         NetworkServer.Spawn(instantiatedGrenade);
+    }
+    [Command]
+    void CmdDeathFlag() {
+        GameObject instantiatedDeathFlag = (GameObject)Instantiate(deathFlag, transform.position, Quaternion.identity);
+        NetworkServer.Spawn(instantiatedDeathFlag);
     }
     [Command]
     void CmdUltimate() {
@@ -164,13 +178,13 @@ public class Player : NetworkBehaviour {
 
         transform.Translate(0.0f, velocity * Time.deltaTime, 0.0f);
     }
-    public void Damage(float damage) {
+    public void Damage(float damage, Player killer) {
         if (!isServer || invulnerable) {
             return;
         }
         health -= damage;
         if (health <= 0 && alive) {
-            StartCoroutine(Death());
+            StartCoroutine(Death(killer));
         }
     }
 
@@ -234,11 +248,14 @@ public class Player : NetworkBehaviour {
     void UpdateSprites() {
         shield.SetActive(shielded);
         model.SetActive(alive);
+        if (!alive) {
+            broadcastText.text = broadcast;
+        }
     }
 
 
     void OnCollisionEnter2D(Collision2D collision) {
-        if (!invulnerable && collision.gameObject.CompareTag("Projectile") && collision.gameObject.GetComponent<Projectile>().assignedID != id) {
+        if (!invulnerable && collision.gameObject.CompareTag("Projectile") && collision.gameObject.GetComponent<Projectile>().owner != this) {
             StartCoroutine(Flash());
         }
     }
@@ -276,18 +293,18 @@ public class Player : NetworkBehaviour {
         canMove = true;
     }
 
-    IEnumerator Death() {
+    IEnumerator Death(Player killer) {
         alive = false;
         canMove = false;
-        ps.Play();
+        CmdDeathFlag();
+        broadcast = "Player " + (killer.id + 1) + " has slain Player " + (id + 1) + "!";
         yield return new WaitForSeconds(deathTime);
         deaths++;
-        ps.Stop();
         health = MAX_HEALTH;
         RpcRespawn();
         alive = true;
         canMove = true;
-
+        broadcast = "";
     }
 }
 
