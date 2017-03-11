@@ -8,6 +8,7 @@ public class Player : NetworkBehaviour {
     public const int NUM_ABILITIES = 4;
     public const float GLOBAL_COOLDOWN = 0.5f;
     public const float MAX_HEALTH = 100f;
+    public const string DEATH_MESSAGE = "You died! Respawn in ";
     /* public for initialization or access*/
     [SyncVar]
     public int id;
@@ -15,28 +16,30 @@ public class Player : NetworkBehaviour {
     public float fireRate = 1.0f;
     [SyncVar]
     public int deaths = 0;
+    [SyncVar]
+    public float health = MAX_HEALTH;
+    [SyncVar]
+    public bool invulnerable = false;
+    [SyncVar]
+    public bool canMove = true;
+    public float velocity = 0f;
+    public float deathTime = 5f;
     public float shieldTime = 3f;
     public float ultiMoveMultiplier = 3f;
     public float ultimateDuration = 15f;
     public float ultimateFireRate = 0.1f;
     public float[] abilityCooldowns = new float[NUM_ABILITIES];
-    [SyncVar]
-    public float health = MAX_HEALTH;
     public KeyCode left = KeyCode.A;
     public KeyCode right = KeyCode.D;
     public KeyCode up = KeyCode.W;
     public KeyCode down = KeyCode.S;
     public KeyCode[] ability;
     public float rotationSpeed = 25f;
-    [SyncVar]
-    public float velocity = 0f;
+
     public float moveSpeed = 5f;
     public float projectileSpeed = 1f;
-    [SyncVar]
-    public bool canMove = true;
     public float stunTime = 5f;
-    [SyncVar]
-    public bool invulnerable = false;
+
 
     /* prefabs */
     public GameObject spawnPoint;
@@ -44,6 +47,7 @@ public class Player : NetworkBehaviour {
     public GameObject projectile;
     public GameObject grenade;
     public GameObject shield;
+
 
     /* private */
     float[] currAbilityCooldowns = new float[NUM_ABILITIES];
@@ -53,14 +57,22 @@ public class Player : NetworkBehaviour {
     Rigidbody2D rb;
     GameObject healthBar;
     RectTransform healthBarRect;
+    GameObject deathOverlay;
+    Text deathText;
+    GameObject model;
+
+    ParticleSystem ps;
+    NetworkStartPosition[] spawnPoints;
     [SyncVar]
     bool shielded;
+    [SyncVar]
+    bool alive = true;
+    float timer;
 
     // Use this for initialization
 
     public override void OnStartLocalPlayer()
     {
-        Camera.main.GetComponent<CameraFollow>().setTargetTransform(gameObject.transform);
         for (int i = 0; i < NUM_ABILITIES; ++i) {
             abilityTimers[i] = 0;
             currAbilityCooldowns[i] = abilityCooldowns[i];
@@ -69,19 +81,22 @@ public class Player : NetworkBehaviour {
         }
         healthBar = GameObject.Find("Canvas/HUD/Health Bar");
         healthBarRect = healthBar.GetComponent<RectTransform>();
+        deathOverlay = GameObject.Find("Canvas/Death Overlay");
+        deathText = GameObject.Find("Canvas/Death Overlay/Text").GetComponent<Text>();
+        deathOverlay.SetActive(false);
+        spawnPoints = FindObjectsOfType<NetworkStartPosition>();
     }
 
     void Start() {
         id = Game.instance.RegisterPlayer(this);
         shield.SetActive(false);
         rb = GetComponent<Rigidbody2D>();
+        model = transform.Find("Model").gameObject;
+        ps = GetComponent<ParticleSystem>();
     }
 
     // Update is called once per frame
     void Update() {
-        if (health <= 0) {
-            // death code goes here
-        }
         UpdateSprites();
         if (!isLocalPlayer) {
             return;
@@ -90,10 +105,25 @@ public class Player : NetworkBehaviour {
             GetMovement();
         }
         HandleAbilities();
-        UpdateHealthBarUI();
+        UpdateUI();
+        Camera.main.transform.position = new Vector3(transform.position.x, transform.position.y, Camera.main.transform.position.z);
     }
-    void UpdateHealthBarUI() {
-        healthBarRect.anchorMax = new Vector2(healthBarRect.anchorMin.x + 0.35f * (health) / MAX_HEALTH, healthBarRect.anchorMax.y);
+
+
+    [ClientRpc]
+    void RpcRespawn() {
+        if (isLocalPlayer) {
+            // Set the spawn point to origin as a default value
+            Vector3 sp = Vector3.zero;
+
+            // If there is a spawn point array and the array is not empty, pick one at random
+            if (spawnPoints != null && spawnPoints.Length > 0) {
+                sp = spawnPoints[UnityEngine.Random.Range(0, spawnPoints.Length)].transform.position;
+            }
+
+            // Set the player’s position to the chosen spawn point
+            transform.position = sp;
+        }
     }
     [Command]
     void CmdFire() {
@@ -109,15 +139,11 @@ public class Player : NetworkBehaviour {
         instantiatedGrenade.GetComponent<Rigidbody2D>().velocity = spawnPoint.transform.up * projectileSpeed;
         NetworkServer.Spawn(instantiatedGrenade);
     }
-
     [Command]
-    void CmdActivateShield() {
-        StartCoroutine(Shield());
-    }
-    [Command]
-    void CmdActivateUltimate() {
+    void CmdUltimate() {
         StartCoroutine(Ultimate());
     }
+
     private void GetMovement() {
         if (Input.GetKey(left)) {
             float turnVelocity = Mathf.Max(rotationSpeed, rotationSpeed * velocity * 0.1f);
@@ -138,6 +164,15 @@ public class Player : NetworkBehaviour {
 
         transform.Translate(0.0f, velocity * Time.deltaTime, 0.0f);
     }
+    public void Damage(float damage) {
+        if (!isServer || invulnerable) {
+            return;
+        }
+        health -= damage;
+        if (health <= 0 && alive) {
+            StartCoroutine(Death());
+        }
+    }
 
     private void HandleAbilities() {
         for (int i = 0; i < NUM_ABILITIES; ++i) {
@@ -149,7 +184,6 @@ public class Player : NetworkBehaviour {
                     }
                 }
                 abilityTimers[i] = abilityCooldowns[i];
-                // ability code goes here
                 ActivateAbility(i);
             }
             if (abilityTimers[i] >= 0) {
@@ -172,49 +206,47 @@ public class Player : NetworkBehaviour {
                 CmdFire();
                 break;
             case 1:
-                CmdActivateShield();
+                StartCoroutine(Shield());
                 break;
             case 2:
                 CmdFireGrenade();
                 break;
             case 3:
-                CmdActivateUltimate();
+                CmdUltimate();
                 break;
             default:
                 break;
         }
     }
-    [Command]
-    void CmdDamage(float damage) {
-        health -= damage;
-        health = Mathf.Clamp(health, 0, health);
+    public void Stun() {
+        StartCoroutine(Stunned());
+    }
+    void UpdateUI() {
+        healthBarRect.anchorMax = new Vector2(healthBarRect.anchorMin.x + 0.35f * (health) / MAX_HEALTH, healthBarRect.anchorMax.y);
+        deathOverlay.SetActive(!alive);
+        if (!alive) {
+            timer -= Time.deltaTime;
+            deathText.text = DEATH_MESSAGE + (int)timer;
+        } else {
+            timer = deathTime;
+        }
+    }
+    void UpdateSprites() {
+        shield.SetActive(shielded);
+        model.SetActive(alive);
     }
 
-    public void Damage(float damage) {
-        CmdDamage(damage);
-    }
 
-    private void OnCollisionEnter2D(Collision2D collision) {
-
+    void OnCollisionEnter2D(Collision2D collision) {
         if (!invulnerable && collision.gameObject.CompareTag("Projectile") && collision.gameObject.GetComponent<Projectile>().assignedID != id) {
             StartCoroutine(Flash());
         }
     }
 
-    public void Stun() {
-        StartCoroutine(Stunned());
-    }
-
-    void UpdateSprites() {
-        shield.SetActive(shielded);
-    }
-
     IEnumerator Flash() {
-        invulnerable = true;
         body.GetComponent<SpriteRenderer>().color = Color.red;
         yield return new WaitForSeconds(0.5f);
         body.GetComponent<SpriteRenderer>().color = Color.white;
-        invulnerable = false;
     }
 
     IEnumerator Shield() {
@@ -239,8 +271,23 @@ public class Player : NetworkBehaviour {
         canMove = false;
         rb.velocity = Vector3.zero;
         CancelInvoke();
+        // play some particle effect here
         yield return new WaitForSeconds(stunTime);
         canMove = true;
+    }
+
+    IEnumerator Death() {
+        alive = false;
+        canMove = false;
+        ps.Play();
+        yield return new WaitForSeconds(deathTime);
+        deaths++;
+        ps.Stop();
+        health = MAX_HEALTH;
+        RpcRespawn();
+        alive = true;
+        canMove = true;
+
     }
 }
 
