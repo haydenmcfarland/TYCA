@@ -5,17 +5,20 @@ using UnityEngine.Networking;
 using UnityEngine.UI;
 
 public class Player : NetworkBehaviour {
+
+    /* CONST VARIABLES */
     public const int NUM_ABILITIES = 4;
     public const float GLOBAL_COOLDOWN = 0.5f;
     public const float MAX_HEALTH = 100f;
     public const string DEATH_MESSAGE = "You died! Respawn in ";
-    /* public for initialization or access*/
+
+    /* NETWORK SYNC VARIABLES */
     [SyncVar]
     public int id;
     [SyncVar]
-    public float fireRate = 1.0f;
-    [SyncVar]
     public int deaths = 0;
+    [SyncVar]
+    public float fireRate = 1.0f;
     [SyncVar]
     public float health = MAX_HEALTH;
     [SyncVar]
@@ -23,56 +26,72 @@ public class Player : NetworkBehaviour {
     [SyncVar]
     public bool canMove = true;
     [SyncVar]
+    bool shielded;
+    [SyncVar]
+    bool alive = true;
+    [SyncVar]
     public string broadcast;
-    public float velocity = 0f;
+
+    /* TIMING/ABILITY VARIABLES */
+    float timer;
     public float deathTime = 5f;
     public float shieldTime = 3f;
     public float ultiMoveMultiplier = 3f;
     public float ultimateDuration = 15f;
     public float ultimateFireRate = 0.1f;
     public float[] abilityCooldowns = new float[NUM_ABILITIES];
-    public KeyCode left = KeyCode.A;
-    public KeyCode right = KeyCode.D;
-    public KeyCode up = KeyCode.W;
-    public KeyCode down = KeyCode.S;
     public KeyCode[] ability;
-    public float rotationSpeed = 25f;
 
+
+    /* SPEED VARIABLES */
+    public float rotationSpeed = 200f;
     public float moveSpeed = 5f;
     public float projectileSpeed = 1f;
     public float stunTime = 5f;
 
-
-    /* prefabs */
+    /* DROP IN GAMEOBJECTS */
     public GameObject spawnPoint;
     public GameObject body;
+    public GameObject barrel;
     public GameObject projectile;
     public GameObject grenade;
     public GameObject deathFlag;
     public GameObject shield;
 
+    /* PLAYER INFO VARIABLES */
+    public Color playerColor = Color.white;
+    public string playerName = "";
+    NetworkStartPosition[] spawnPoints;
 
-    /* private */
+    /* PRIVATE ABILITY VARIABLES */
     float[] currAbilityCooldowns = new float[NUM_ABILITIES];
     float[] abilityTimers = new float[NUM_ABILITIES];
     Image[] abilityCD = new Image[NUM_ABILITIES];
     Text[] abilityCDText = new Text[NUM_ABILITIES];
-    Rigidbody2D rb;
+
+    /* UI ELEMENTS */
     GameObject healthBar;
     RectTransform healthBarRect;
+
     GameObject deathOverlay;
     Text deathText;
     Text broadcastText;
+
+    /* PLAYER INFO DISPLAY */
+    public GameObject infoCanvas;
+    public Text playerNameText;
+    public GameObject healthBarMini;
+    RectTransform healthBarMiniRect;
+    // used to force world canvas position under parent
+    Quaternion infoRot;
+    Vector3 infoPos;
+
+    
+    /* PLAYER OBJECT */
+    Rigidbody2D rb;
     GameObject model;
-    NetworkStartPosition[] spawnPoints;
-    [SyncVar]
-    bool shielded;
-    [SyncVar]
-    bool alive = true;
-    float timer;
 
-    // Use this for initialization
-
+    // Use for local player initialization
     public override void OnStartLocalPlayer()
     {
         for (int i = 0; i < NUM_ABILITIES; ++i) {
@@ -86,7 +105,40 @@ public class Player : NetworkBehaviour {
         deathOverlay = GameObject.Find("Canvas/Death Overlay");
         deathText = GameObject.Find("Canvas/Death Overlay/Text").GetComponent<Text>();
         deathOverlay.SetActive(false);
+
+        /* INFO CANVAS */
+        healthBarMiniRect = healthBarMini.GetComponent<RectTransform>();
+        healthBarMini.GetComponent<Image>().color = playerColor;
+        barrel.GetComponent<SpriteRenderer>().color = playerColor;
+        playerNameText.text = playerName;
+        infoRot = infoCanvas.transform.rotation;
+        infoPos = infoCanvas.transform.localPosition;
+        /* NEEDS SYNC */
+
         spawnPoints = FindObjectsOfType<NetworkStartPosition>();
+
+    }
+    
+    // Added for movement smoothing
+    void OnSerializeNetworkView(BitStream stream, NetworkMessageInfo info)
+    {
+        Vector3 syncPos = rb.position;
+        Vector3 velocity = rb.velocity;
+        float rotation = rb.rotation;
+        float angVel = rb.angularVelocity;
+
+        stream.Serialize(ref syncPos);
+        stream.Serialize(ref velocity);
+        stream.Serialize(ref rotation);
+        stream.Serialize(ref angVel);
+
+        if (stream.isReading)
+        {
+            rb.position = syncPos;
+            rb.velocity = velocity;
+            rb.rotation = rotation;
+            rb.angularVelocity = angVel;
+        }
     }
 
     void Start() {
@@ -100,12 +152,15 @@ public class Player : NetworkBehaviour {
     }
 
     // Update is called once per frame
-    void Update() {
+    void Update()
+    {
         UpdateSprites();
-        if (!isLocalPlayer) {
+        if (!isLocalPlayer)
+        {
             return;
         }
-        if (canMove) {
+        if (canMove)
+        {
             GetMovement();
         }
         HandleAbilities();
@@ -113,6 +168,17 @@ public class Player : NetworkBehaviour {
         Camera.main.transform.position = new Vector3(transform.position.x, transform.position.y, Camera.main.transform.position.z);
     }
 
+    private void LateUpdate()
+    {
+        FixInfo();
+    }
+
+    /* TEMP NEEDS TO BE SYNCED WITH SERVER */
+    void FixInfo()
+    {
+        infoCanvas.transform.position = infoPos + transform.position;
+        infoCanvas.transform.rotation = infoRot;
+    }
 
     [ClientRpc]
     void RpcRespawn() {
@@ -129,6 +195,7 @@ public class Player : NetworkBehaviour {
             transform.position = sp;
         }
     }
+
     [Command]
     void CmdFire() {
         GameObject instantiatedProjectile = (GameObject)Instantiate(projectile, spawnPoint.transform.position, Quaternion.identity);
@@ -148,36 +215,38 @@ public class Player : NetworkBehaviour {
         instantiatedGrenade.GetComponent<Grenade>().owner = this;
         NetworkServer.Spawn(instantiatedGrenade);
     }
+
     [Command]
     void CmdDeathFlag() {
         GameObject instantiatedDeathFlag = (GameObject)Instantiate(deathFlag, transform.position, Quaternion.identity);
         NetworkServer.Spawn(instantiatedDeathFlag);
     }
+
     [Command]
     void CmdUltimate() {
         StartCoroutine(Ultimate());
     }
 
     private void GetMovement() {
-        if (Input.GetKey(left)) {
-            float turnVelocity = Mathf.Max(rotationSpeed, rotationSpeed * velocity * 0.1f);
-            transform.Rotate(new Vector3(0.0f, 0.0f, turnVelocity * Time.deltaTime));
-        }
 
-        if (Input.GetKey(right)) {
-            float turnVelocity = Mathf.Max(rotationSpeed, rotationSpeed * velocity * 0.1f);
-            transform.Rotate(new Vector3(0.0f, 0.0f, -turnVelocity * Time.deltaTime));
-        }
-        if (Input.GetKey(up)) {
-            velocity = Mathf.Min(moveSpeed, velocity + moveSpeed * Time.deltaTime);
-        } else if (Input.GetKey(down)) {
-            velocity = Mathf.Max(-moveSpeed * (1 + (rotationSpeed)) / 2f, velocity - moveSpeed * .85f * Time.deltaTime);
-        } else {
-            velocity = 0;
-        }
+        float moveVelocity = 0;
+        float turnVelocity = 0;
 
-        transform.Translate(0.0f, velocity * Time.deltaTime, 0.0f);
+        if (Input.GetAxis("Vertical") != 0)
+            moveVelocity = Time.deltaTime * Input.GetAxis("Vertical") * 200;
+
+        if (Input.GetAxis("Horizontal") != 0)
+        {
+            turnVelocity = Time.deltaTime * Input.GetAxis("Horizontal") * 200;
+            print(turnVelocity);
+        }
+            
+
+        rb.MoveRotation(rb.rotation - turnVelocity);
+        rb.velocity = transform.up * moveVelocity;
+
     }
+
     public void Damage(float damage, Player killer) {
         if (!isServer || invulnerable) {
             return;
@@ -237,6 +306,9 @@ public class Player : NetworkBehaviour {
     }
     void UpdateUI() {
         healthBarRect.anchorMax = new Vector2(healthBarRect.anchorMin.x + 0.35f * (health) / MAX_HEALTH, healthBarRect.anchorMax.y);
+        /* TEMP NEED TO SYNC */
+        healthBarMiniRect.anchorMax = new Vector2(healthBarMiniRect.anchorMin.x + 0.5f* (health) / MAX_HEALTH, healthBarMiniRect.anchorMax.y);
+
         deathOverlay.SetActive(!alive);
         if (!alive) {
             timer -= Time.deltaTime;
@@ -263,7 +335,7 @@ public class Player : NetworkBehaviour {
     IEnumerator Flash() {
         body.GetComponent<SpriteRenderer>().color = Color.red;
         yield return new WaitForSeconds(0.5f);
-        body.GetComponent<SpriteRenderer>().color = Color.white;
+        body.GetComponent<SpriteRenderer>().color = playerColor;
     }
 
     IEnumerator Shield() {
@@ -305,6 +377,7 @@ public class Player : NetworkBehaviour {
         alive = true;
         canMove = true;
         broadcast = "";
+        broadcastText.text = broadcast;
     }
 }
 
