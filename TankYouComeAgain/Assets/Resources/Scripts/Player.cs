@@ -59,7 +59,9 @@ public class Player : NetworkBehaviour {
     public GameObject shield;
 
     /* PLAYER INFO VARIABLES */
+    [SyncVar]
     public Color playerColor = Color.white;
+    [SyncVar]
     public string playerName = "";
     NetworkStartPosition[] spawnPoints;
 
@@ -106,15 +108,6 @@ public class Player : NetworkBehaviour {
         deathText = GameObject.Find("Canvas/Death Overlay/Text").GetComponent<Text>();
         deathOverlay.SetActive(false);
 
-        /* INFO CANVAS */
-        healthBarMiniRect = healthBarMini.GetComponent<RectTransform>();
-        healthBarMini.GetComponent<Image>().color = playerColor;
-        barrel.GetComponent<SpriteRenderer>().color = playerColor;
-        playerNameText.text = playerName;
-        infoRot = infoCanvas.transform.rotation;
-        infoPos = infoCanvas.transform.localPosition;
-        /* NEEDS SYNC */
-
         spawnPoints = FindObjectsOfType<NetworkStartPosition>();
 
     }
@@ -149,6 +142,13 @@ public class Player : NetworkBehaviour {
         rb = GetComponent<Rigidbody2D>();
         model = transform.Find("Model").gameObject;
         broadcastText = GameObject.Find("Canvas/Broadcast").GetComponent<Text>();
+        /* INFO CANVAS */
+        healthBarMiniRect = healthBarMini.GetComponent<RectTransform>();
+        healthBarMini.GetComponent<Image>().color = playerColor;
+        barrel.GetComponent<SpriteRenderer>().color = playerColor;
+        playerNameText.text = playerName;
+        infoRot = infoCanvas.transform.rotation;
+        infoPos = infoCanvas.transform.localPosition;
     }
 
     // Update is called once per frame
@@ -166,18 +166,6 @@ public class Player : NetworkBehaviour {
         HandleAbilities();
         UpdateUI();
         Camera.main.transform.position = new Vector3(transform.position.x, transform.position.y, Camera.main.transform.position.z);
-    }
-
-    private void LateUpdate()
-    {
-        FixInfo();
-    }
-
-    /* TEMP NEEDS TO BE SYNCED WITH SERVER */
-    void FixInfo()
-    {
-        infoCanvas.transform.position = infoPos + transform.position;
-        infoCanvas.transform.rotation = infoRot;
     }
 
     [ClientRpc]
@@ -306,9 +294,6 @@ public class Player : NetworkBehaviour {
     }
     void UpdateUI() {
         healthBarRect.anchorMax = new Vector2(healthBarRect.anchorMin.x + 0.35f * (health) / MAX_HEALTH, healthBarRect.anchorMax.y);
-        /* TEMP NEED TO SYNC */
-        healthBarMiniRect.anchorMax = new Vector2(healthBarMiniRect.anchorMin.x + 0.5f* (health) / MAX_HEALTH, healthBarMiniRect.anchorMax.y);
-
         deathOverlay.SetActive(!alive);
         if (!alive) {
             timer -= Time.deltaTime;
@@ -323,6 +308,9 @@ public class Player : NetworkBehaviour {
         if (!alive) {
             broadcastText.text = broadcast;
         }
+        infoCanvas.transform.position = infoPos + transform.position;
+        infoCanvas.transform.rotation = infoRot;
+        healthBarMiniRect.anchorMax = new Vector2(healthBarMiniRect.anchorMin.x + 0.5f * (health) / MAX_HEALTH, healthBarMiniRect.anchorMax.y);
     }
 
 
