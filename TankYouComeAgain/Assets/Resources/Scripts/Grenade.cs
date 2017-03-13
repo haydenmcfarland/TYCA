@@ -10,10 +10,12 @@ public class Grenade : NetworkBehaviour {
     public Player owner;
     ParticleSystem ps;
     Rigidbody2D rb;
+    AudioSource clip;
 	// Use this for initialization
 	void Start () {
         ps = GetComponent<ParticleSystem>();
         rb = GetComponent<Rigidbody2D>();
+        clip = GetComponent<AudioSource>();
         StartCoroutine(Explode());
 	}
 	
@@ -33,6 +35,7 @@ public class Grenade : NetworkBehaviour {
 
     IEnumerator Explode() {
         yield return new WaitForSeconds(lifetime);
+        clip.Play();
         Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, radius);
         foreach (Collider2D hit in hits) {
             if (hit.gameObject.CompareTag("Player") && !hit.gameObject.GetComponentInParent<Player>().invulnerable && hit.gameObject.GetComponentInParent<Player>() != owner) {

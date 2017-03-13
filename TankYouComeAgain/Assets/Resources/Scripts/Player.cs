@@ -44,8 +44,10 @@ public class Player : NetworkBehaviour {
 
 
     /* SPEED VARIABLES */
-    public float rotationSpeed = 200f;
-    public float moveSpeed = 5f;
+    float rotationSpeed;
+    float moveSpeed;
+    public float moveMult = 100f;
+    public float rotMult = 100f;
     public float projectileSpeed = 1f;
     public float stunTime = 5f;
 
@@ -217,21 +219,18 @@ public class Player : NetworkBehaviour {
 
     private void GetMovement() {
 
-        float moveVelocity = 0;
-        float turnVelocity = 0;
-
-        if (Input.GetAxis("Vertical") != 0)
-            moveVelocity = Time.deltaTime * Input.GetAxis("Vertical") * 200;
+        if (Input.GetAxis("Vertical") != 0) {
+            moveSpeed = Time.deltaTime * Input.GetAxis("Vertical") * moveMult;
+        }
 
         if (Input.GetAxis("Horizontal") != 0)
         {
-            turnVelocity = Time.deltaTime * Input.GetAxis("Horizontal") * 200;
-            print(turnVelocity);
+            rotationSpeed = Time.deltaTime * Input.GetAxis("Horizontal") * rotMult;
         }
             
 
-        rb.MoveRotation(rb.rotation - turnVelocity);
-        rb.velocity = transform.up * moveVelocity;
+        rb.MoveRotation(rb.rotation - rotationSpeed);
+        rb.velocity = transform.up * moveSpeed;
 
     }
 
@@ -335,13 +334,13 @@ public class Player : NetworkBehaviour {
     }
 
     IEnumerator Ultimate() {
-        moveSpeed *= ultiMoveMultiplier;
-        rotationSpeed *= ultiMoveMultiplier;
+        moveMult *= ultiMoveMultiplier;
+        rotMult *= ultiMoveMultiplier;
         InvokeRepeating("CmdFire", 0, ultimateFireRate);
         yield return new WaitForSeconds(ultimateDuration);
         CancelInvoke();
-        moveSpeed /= ultiMoveMultiplier;
-        rotationSpeed /= ultiMoveMultiplier;
+        moveMult /= ultiMoveMultiplier;
+        rotMult /= ultiMoveMultiplier;
     }
 
     IEnumerator Stunned() {
