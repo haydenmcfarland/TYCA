@@ -76,7 +76,6 @@ public class Player : NetworkBehaviour {
     /* UI ELEMENTS */
     GameObject healthBar;
     RectTransform healthBarRect;
-
     GameObject deathOverlay;
     Text deathText;
     Text broadcastText;
@@ -330,7 +329,7 @@ public class Player : NetworkBehaviour {
     IEnumerator Shield() {
         shielded = true;
         invulnerable = true;
-        clip.Play();
+        Game.instance.PlayClip(clip);
         yield return new WaitForSeconds(shieldTime);
         invulnerable = false;
         shielded = false;

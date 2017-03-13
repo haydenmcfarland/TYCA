@@ -7,10 +7,13 @@ public class Projectile : NetworkBehaviour {
     public float damage = 10.0f;
     public Player owner;
     ParticleSystem particleSys;
+    AudioSource clip;
 
     // Use this for initialization
     void Start() {
         particleSys = GetComponent<ParticleSystem>();
+        clip = GetComponent<AudioSource>();
+        Game.instance.PlayClip(clip);
     }
 
     // Update is called once per frame

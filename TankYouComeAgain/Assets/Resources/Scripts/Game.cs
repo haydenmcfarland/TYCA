@@ -8,6 +8,8 @@ public class Game : MonoBehaviour {
     public const int MAX_PLAYERS = 4;
     public static Game instance;
     public KeyCode exit = KeyCode.Escape;
+    public KeyCode mute = KeyCode.M;
+    public bool muted = false;
     public Player[] players = new Player[MAX_PLAYERS];
     int currIndex = 0;
 
@@ -19,6 +21,9 @@ public class Game : MonoBehaviour {
     void Update() {
         if (Input.GetKeyDown(exit)) {
             SceneManager.LoadScene("Menu");
+        }
+        if (Input.GetKeyDown(mute)) {
+            muted = !muted;
         }
     }
 
@@ -32,5 +37,11 @@ public class Game : MonoBehaviour {
     public bool GameOver() {
         // Win condition goes here
         return false;
+    }
+
+    public void PlayClip(AudioSource clip) {
+        if (!muted) {
+            clip.Play();
+        }
     }
 }
