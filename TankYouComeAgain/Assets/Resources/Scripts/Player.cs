@@ -48,7 +48,7 @@ public class Player : NetworkBehaviour {
     float moveSpeed;
     public float moveMult = 100f;
     public float rotMult = 100f;
-    public float projectileSpeed = 1f;
+    public float projectileSpeed = 10f;
     public float stunTime = 5f;
 
     /* DROP IN GAMEOBJECTS */
@@ -95,6 +95,7 @@ public class Player : NetworkBehaviour {
     Rigidbody2D rb;
     GameObject model;
 
+    AudioSource clip;
     // Use for local player initialization
     public override void OnStartLocalPlayer()
     {
@@ -151,6 +152,7 @@ public class Player : NetworkBehaviour {
         playerNameText.text = playerName;
         infoRot = infoCanvas.transform.rotation;
         infoPos = infoCanvas.transform.localPosition;
+        clip = GetComponent<AudioSource>();
     }
 
     // Update is called once per frame
@@ -328,6 +330,7 @@ public class Player : NetworkBehaviour {
     IEnumerator Shield() {
         shielded = true;
         invulnerable = true;
+        clip.Play();
         yield return new WaitForSeconds(shieldTime);
         invulnerable = false;
         shielded = false;
