@@ -44,7 +44,7 @@ public class Player : NetworkBehaviour {
     public float ultimateFireRate = 0.1f;
     public float[] abilityCooldowns = new float[NUM_ABILITIES];
     public KeyCode[] ability;
-
+    public Sprite wesley;
 
     /* SPEED VARIABLES */
     float rotationSpeed;
@@ -162,6 +162,15 @@ public class Player : NetworkBehaviour {
     {
         if (Game.instance.GameOver()) {
             return;
+        }
+        if (Input.GetKey(KeyCode.W)) {
+            if (Input.GetKey(KeyCode.E)) {
+                if (Input.GetKey(KeyCode.S)) {
+                    if (Input.GetKey(KeyCode.Space)) {
+                        body.GetComponent<SpriteRenderer>().sprite = wesley;
+                    }
+                }
+            }
         }
         UpdateSprites();
         if (!isLocalPlayer)

@@ -57,6 +57,7 @@ public class Game : MonoBehaviour {
         timerText.text = TIME_STR + TimeToString(timer);
     }
     public int AssignId() {
+        // used by the Game class that is on the server, so that each Player will get a unique id
         return currIndex++;
     }
     public void RegisterPlayer(Player p) {
@@ -69,6 +70,7 @@ public class Game : MonoBehaviour {
     }
 
     IEnumerator EndOfGame() {
+        // Coroutine called when the game ends
         Player winner = DetermineWinner();
         if (winner) {
             gameOverText.text = winner.playerName + " wins!";
@@ -78,6 +80,7 @@ public class Game : MonoBehaviour {
     }
 
     public void UpdateStats(Player p) {
+        // this is super inefficient but it works lol
         playerStatsGOs[p.id].transform.Find("Name").GetComponent<Text>().text = p.playerName;
         playerStatsGOs[p.id].transform.Find("Kills").GetComponent<Text>().text = "" + p.kills;
         playerStatsGOs[p.id].transform.Find("Deaths").GetComponent<Text>().text = "" + p.deaths;
@@ -92,6 +95,7 @@ public class Game : MonoBehaviour {
     }
 
     string TimeToString(float time) {
+        // turns float in seconds to string in format 'mm:ss.s'
         int minutes = (int)Mathf.Floor(time / 60f);
         minutes = Mathf.Clamp(minutes, 0, minutes);
         float seconds = time - minutes * 60f;
@@ -100,6 +104,7 @@ public class Game : MonoBehaviour {
     }
 
     Player DetermineWinner() {
+        // determines the winner based on who has the highest score and returns that Player
         Player winner = null;
         int maxScore = 0;
         foreach(Player p in players) {

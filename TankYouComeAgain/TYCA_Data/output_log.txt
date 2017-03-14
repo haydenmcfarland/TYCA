@@ -17,7 +17,7 @@ Platform assembly: C:\Users\Jeffrey Araki\Documents\GitHub\TankYouComeAgain\Tank
 Loading C:\Users\Jeffrey Araki\Documents\GitHub\TankYouComeAgain\TankYouComeAgain\TYCA_Data\Managed\UnityEngine.Networking.dll into Unity Child Domain
 Platform assembly: C:\Users\Jeffrey Araki\Documents\GitHub\TankYouComeAgain\TankYouComeAgain\TYCA_Data\Managed\UnityEngine.PlaymodeTestsRunner.dll (this message is harmless)
 Loading C:\Users\Jeffrey Araki\Documents\GitHub\TankYouComeAgain\TankYouComeAgain\TYCA_Data\Managed\UnityEngine.PlaymodeTestsRunner.dll into Unity Child Domain
-- Completed reload, in  0.217 seconds
+- Completed reload, in  0.196 seconds
 Platform assembly: C:\Users\Jeffrey Araki\Documents\GitHub\TankYouComeAgain\TankYouComeAgain\TYCA_Data\Managed\System.Core.dll (this message is harmless)
 Platform assembly: C:\Users\Jeffrey Araki\Documents\GitHub\TankYouComeAgain\TankYouComeAgain\TYCA_Data\Managed\System.dll (this message is harmless)
 desktop: 1920x1080 60Hz; virtual: 1920x1080 at 0,0
@@ -25,12 +25,12 @@ desktop: 1920x1080 60Hz; virtual: 1920x1080 at 0,0
 XInput1_3.dll not found. Trying XInput9_1_0.dll instead...
 <RI> Input initialized.
 <RI> Initialized touch support.
-UnloadTime: 1.517433 ms
+UnloadTime: 1.700742 ms
 Unloading 6 Unused Serialized files (Serialized files now loaded: 0)
-UnloadTime: 6.869736 ms
+UnloadTime: 5.060746 ms
 
-Unloading 8 unused Assets to reduce memory usage. Loaded Objects now: 773.
-Total: 3.817090 ms (FindLiveObjects: 0.060444 ms CreateObjectMapping: 0.041876 ms MarkObjects: 0.917334 ms  DeleteObjects: 2.797040 ms)
+Unloading 8 unused Assets to reduce memory usage. Loaded Objects now: 775.
+Total: 2.295706 ms (FindLiveObjects: 0.074271 ms CreateObjectMapping: 0.072296 ms MarkObjects: 0.624198 ms  DeleteObjects: 1.524545 ms)
 
 MatchMakingClient Create :https://mm.unet.unity3d.com/json/reply/CreateMatchRequest
  
@@ -41,19 +41,10 @@ DontDestroyOnLoad only work for root GameObjects or components on root GameObjec
 (Filename:  Line: 447)
 
 Unloading 5 Unused Serialized files (Serialized files now loaded: 0)
-UnloadTime: 0.242173 ms
+UnloadTime: 0.252839 ms
 
-Unloading 1 unused Assets to reduce memory usage. Loaded Objects now: 1307.
-Total: 1.697187 ms (FindLiveObjects: 0.235457 ms CreateObjectMapping: 0.083358 ms MarkObjects: 1.366915 ms  DeleteObjects: 0.008296 ms)
-
-NullReferenceException: Object reference not set to an instance of an object
-  at Game+<EndOfGame>c__Iterator0.MoveNext () [0x00000] in <filename unknown>:0 
-  at UnityEngine.SetupCoroutine.InvokeMoveNext (IEnumerator enumerator, IntPtr returnValueAddress) [0x00000] in <filename unknown>:0 
-UnityEngine.MonoBehaviour:StartCoroutine_Auto_Internal(IEnumerator)
-UnityEngine.MonoBehaviour:StartCoroutine(IEnumerator)
-Game:Update()
- 
-(Filename:  Line: -1)
+Unloading 1 unused Assets to reduce memory usage. Loaded Objects now: 1309.
+Total: 1.410767 ms (FindLiveObjects: 0.129975 ms CreateObjectMapping: 0.062024 ms MarkObjects: 1.213236 ms  DeleteObjects: 0.005135 ms)
 
 Setting up 1 worker threads for Enlighten.
-  Thread -> id: 1c1c -> priority: 1 
+  Thread -> id: 1c14 -> priority: 1 
