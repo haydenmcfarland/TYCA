@@ -161,6 +161,7 @@ public class Player : NetworkBehaviour {
     void Update()
     {
         if (Game.instance.GameOver()) {
+            rb.velocity = Vector3.zero;
             return;
         }
         if (Input.GetKey(KeyCode.W)) {
@@ -237,6 +238,8 @@ public class Player : NetworkBehaviour {
 
         if (Input.GetAxis("Vertical") != 0) {
             moveSpeed = Time.deltaTime * Input.GetAxis("Vertical") * moveMult;
+        } else {
+            moveSpeed = 0;
         }
 
         if (Input.GetAxis("Horizontal") != 0)

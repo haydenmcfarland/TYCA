@@ -17,7 +17,7 @@ Platform assembly: C:\Users\Jeffrey Araki\Documents\GitHub\TankYouComeAgain\Tank
 Loading C:\Users\Jeffrey Araki\Documents\GitHub\TankYouComeAgain\TankYouComeAgain\TYCA_Data\Managed\UnityEngine.Networking.dll into Unity Child Domain
 Platform assembly: C:\Users\Jeffrey Araki\Documents\GitHub\TankYouComeAgain\TankYouComeAgain\TYCA_Data\Managed\UnityEngine.PlaymodeTestsRunner.dll (this message is harmless)
 Loading C:\Users\Jeffrey Araki\Documents\GitHub\TankYouComeAgain\TankYouComeAgain\TYCA_Data\Managed\UnityEngine.PlaymodeTestsRunner.dll into Unity Child Domain
-- Completed reload, in  0.196 seconds
+- Completed reload, in  0.176 seconds
 Platform assembly: C:\Users\Jeffrey Araki\Documents\GitHub\TankYouComeAgain\TankYouComeAgain\TYCA_Data\Managed\System.Core.dll (this message is harmless)
 Platform assembly: C:\Users\Jeffrey Araki\Documents\GitHub\TankYouComeAgain\TankYouComeAgain\TYCA_Data\Managed\System.dll (this message is harmless)
 desktop: 1920x1080 60Hz; virtual: 1920x1080 at 0,0
@@ -25,12 +25,12 @@ desktop: 1920x1080 60Hz; virtual: 1920x1080 at 0,0
 XInput1_3.dll not found. Trying XInput9_1_0.dll instead...
 <RI> Input initialized.
 <RI> Initialized touch support.
-UnloadTime: 1.700742 ms
+UnloadTime: 1.705483 ms
 Unloading 6 Unused Serialized files (Serialized files now loaded: 0)
-UnloadTime: 5.060746 ms
+UnloadTime: 5.955167 ms
 
 Unloading 8 unused Assets to reduce memory usage. Loaded Objects now: 775.
-Total: 2.295706 ms (FindLiveObjects: 0.074271 ms CreateObjectMapping: 0.072296 ms MarkObjects: 0.624198 ms  DeleteObjects: 1.524545 ms)
+Total: 3.133238 ms (FindLiveObjects: 0.052938 ms CreateObjectMapping: 0.040691 ms MarkObjects: 0.692544 ms  DeleteObjects: 2.346274 ms)
 
 MatchMakingClient Create :https://mm.unet.unity3d.com/json/reply/CreateMatchRequest
  
@@ -40,11 +40,66 @@ DontDestroyOnLoad only work for root GameObjects or components on root GameObjec
  
 (Filename:  Line: 447)
 
-Unloading 5 Unused Serialized files (Serialized files now loaded: 0)
-UnloadTime: 0.252839 ms
+MatchMakingClient Destroy :https://mm.unet.unity3d.com/json/reply/DestroyMatchRequest
+ 
+(Filename: C:/buildslave/unity/build/artifacts/generated/common/runtime/DebugBindings.gen.cpp Line: 51)
 
-Unloading 1 unused Assets to reduce memory usage. Loaded Objects now: 1309.
-Total: 1.410767 ms (FindLiveObjects: 0.129975 ms CreateObjectMapping: 0.062024 ms MarkObjects: 1.213236 ms  DeleteObjects: 0.005135 ms)
+MatchMakingClient DropConnection :https://mm.unet.unity3d.com/json/reply/DropConnectionRequest
+ 
+(Filename: C:/buildslave/unity/build/artifacts/generated/common/runtime/DebugBindings.gen.cpp Line: 51)
+
+Unloading 5 Unused Serialized files (Serialized files now loaded: 0)
+UnloadTime: 0.348839 ms
+
+Unloading 1 unused Assets to reduce memory usage. Loaded Objects now: 1098.
+Total: 0.853729 ms (FindLiveObjects: 0.034370 ms CreateObjectMapping: 0.026469 ms MarkObjects: 0.786963 ms  DeleteObjects: 0.005530 ms)
+
+MatchMakingClient ListMatches :https://mm.unet.unity3d.com/json/reply/ListMatchRequest
+ 
+(Filename: C:/buildslave/unity/build/artifacts/generated/common/runtime/DebugBindings.gen.cpp Line: 51)
+
+MatchMakingClient Join :https://mm.unet.unity3d.com/json/reply/JoinMatchRequest
+ 
+(Filename: C:/buildslave/unity/build/artifacts/generated/common/runtime/DebugBindings.gen.cpp Line: 51)
+
+DontDestroyOnLoad only work for root GameObjects or components on root GameObjects.
+ 
+(Filename:  Line: 447)
+
+DontDestroyOnLoad only work for root GameObjects or components on root GameObjects.
+ 
+(Filename:  Line: 447)
+
+Unloading 5 Unused Serialized files (Serialized files now loaded: 0)
+UnloadTime: 0.318420 ms
+
+Unloading 1 unused Assets to reduce memory usage. Loaded Objects now: 1399.
+Total: 1.578668 ms (FindLiveObjects: 0.121679 ms CreateObjectMapping: 0.087703 ms MarkObjects: 1.360989 ms  DeleteObjects: 0.007901 ms)
+
+Unloading 2 Unused Serialized files (Serialized files now loaded: 0)
+UnloadTime: 11.337494 ms
+
+Unloading 21 unused Assets to reduce memory usage. Loaded Objects now: 1105.
+Total: 5.697982 ms (FindLiveObjects: 0.172247 ms CreateObjectMapping: 0.087308 ms MarkObjects: 2.426076 ms  DeleteObjects: 3.011559 ms)
+
+Log: connection {1} has been disconnected by timeout; address {::ffff:52.86.7.189:9999}
+MatchMakingClient DropConnection :https://mm.unet.unity3d.com/json/reply/DropConnectionRequest
+ 
+(Filename: C:/buildslave/unity/build/artifacts/generated/common/runtime/DebugBindings.gen.cpp Line: 51)
+
+MatchMakingClient DropConnection :https://mm.unet.unity3d.com/json/reply/DropConnectionRequest
+ 
+(Filename: C:/buildslave/unity/build/artifacts/generated/common/runtime/DebugBindings.gen.cpp Line: 51)
+
+ClientDisconnected due to error: Timeout
+ 
+(Filename: C:/buildslave/unity/build/artifacts/generated/common/runtime/DebugBindings.gen.cpp Line: 51)
+
+Unloading 5 Unused Serialized files (Serialized files now loaded: 0)
+UnloadTime: 0.704790 ms
+
+Unloading 6 unused Assets to reduce memory usage. Loaded Objects now: 893.
+Total: 3.469041 ms (FindLiveObjects: 0.122074 ms CreateObjectMapping: 0.060049 ms MarkObjects: 1.123556 ms  DeleteObjects: 2.162570 ms)
 
 Setting up 1 worker threads for Enlighten.
-  Thread -> id: 1c14 -> priority: 1 
+  Thread -> id: d4 -> priority: 1 

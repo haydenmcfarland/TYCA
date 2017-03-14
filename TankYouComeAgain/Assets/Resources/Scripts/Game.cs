@@ -47,6 +47,7 @@ public class Game : MonoBehaviour {
             return;
         }
         if (Input.GetKeyDown(exitKey)) {
+            Destroy(GameObject.Find("LobbyManager"));
             SceneManager.LoadScene("Menu");
         }
         if (Input.GetKeyDown(muteKey)) {
@@ -71,11 +72,21 @@ public class Game : MonoBehaviour {
 
     IEnumerator EndOfGame() {
         // Coroutine called when the game ends
-        Player winner = DetermineWinner();
-        if (winner) {
-            gameOverText.text = winner.playerName + " wins!";
+        Player[] winner = DetermineWinner();
+        if (winner.Length == 1) {
+            gameOverText.text = winner[0].playerName + " wins!";
+        } else {
+            string players = "";
+            for(int i = 0; i < winner.Length; ++i) {
+                if (winner[i]) {
+                    players += winner[i].playerName + " and ";
+                }
+            }
+            players = players.Substring(0, players.Length - 4);
+            gameOverText.text = players + " win!";
         }
         yield return new WaitForSeconds(5);
+        Destroy(GameObject.Find("LobbyManager"));
         SceneManager.LoadScene("Menu");
     }
 
@@ -103,14 +114,18 @@ public class Game : MonoBehaviour {
         return minutes + ":" + secondsStr;
     }
 
-    Player DetermineWinner() {
+    Player[] DetermineWinner() {
         // determines the winner based on who has the highest score and returns that Player
-        Player winner = null;
+        Player[] winner = new Player[MAX_PLAYERS];
         int maxScore = 0;
+        int currIndex = 0;
         foreach(Player p in players) {
             if(p && p.kills - p.deaths > maxScore) {
-                winner = p;
+                currIndex = 0;
+                winner[currIndex++] = p;
                 maxScore = p.kills - p.deaths;
+            } else if(p && p.kills - p.deaths == maxScore) {
+                winner[currIndex++] = p;
             }
         }
         return winner;
