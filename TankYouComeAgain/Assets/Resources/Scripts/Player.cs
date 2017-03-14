@@ -10,6 +10,7 @@ public class Player : NetworkBehaviour {
     public const int NUM_ABILITIES = 4;
     public const float GLOBAL_COOLDOWN = 0.5f;
     public const float MAX_HEALTH = 100f;
+    public const int MAX_LIVES = 5;
     public const string DEATH_MESSAGE = "You died! Respawn in ";
 
     /* NETWORK SYNC VARIABLES */
@@ -17,6 +18,8 @@ public class Player : NetworkBehaviour {
     public int id;
     [SyncVar]
     public int deaths = 0;
+    [SyncVar]
+    public int kills = 0;
     [SyncVar]
     public float fireRate = 1.0f;
     [SyncVar]
@@ -109,7 +112,6 @@ public class Player : NetworkBehaviour {
         deathOverlay = GameObject.Find("Canvas/Death Overlay");
         deathText = GameObject.Find("Canvas/Death Overlay/Text").GetComponent<Text>();
         deathOverlay.SetActive(false);
-
         spawnPoints = FindObjectsOfType<NetworkStartPosition>();
 
     }
@@ -138,8 +140,9 @@ public class Player : NetworkBehaviour {
 
     void Start() {
         if (isServer) {
-            id = Game.instance.RegisterPlayer(this);
+            id = Game.instance.AssignId();
         }
+        Game.instance.RegisterPlayer(this);
         shield.SetActive(false);
         rb = GetComponent<Rigidbody2D>();
         model = transform.Find("Model").gameObject;
@@ -157,6 +160,9 @@ public class Player : NetworkBehaviour {
     // Update is called once per frame
     void Update()
     {
+        if (Game.instance.GameOver()) {
+            return;
+        }
         UpdateSprites();
         if (!isLocalPlayer)
         {
@@ -311,6 +317,7 @@ public class Player : NetworkBehaviour {
         infoCanvas.transform.position = infoPos + transform.position;
         infoCanvas.transform.rotation = infoRot;
         healthBarMiniRect.anchorMax = new Vector2(healthBarMiniRect.anchorMin.x + 0.5f * (health) / MAX_HEALTH, healthBarMiniRect.anchorMax.y);
+        Game.instance.UpdateStats(this);
     }
 
 
@@ -358,9 +365,10 @@ public class Player : NetworkBehaviour {
         alive = false;
         canMove = false;
         CmdDeathFlag();
-        broadcast = "Player " + (killer.id + 1) + " has slain Player " + (id + 1) + "!";
-        yield return new WaitForSeconds(deathTime);
+        broadcast = killer.playerName + " has slain " + playerName;
         deaths++;
+        killer.kills++;
+        yield return new WaitForSeconds(deathTime);
         health = MAX_HEALTH;
         RpcRespawn();
         alive = true;
