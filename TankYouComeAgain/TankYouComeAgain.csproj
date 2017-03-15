@@ -96,6 +96,8 @@
     <Compile Include="Assets\Resources\Scripts\DeathFlag.cs" />
     <Compile Include="Assets\Resources\Scripts\Game.cs" />
     <Compile Include="Assets\Resources\Scripts\Grenade.cs" />
+    <Compile Include="Assets\Resources\Scripts\LevelLoad.cs" />
+    <Compile Include="Assets\Resources\Scripts\Mutable.cs" />
     <Compile Include="Assets\Resources\Scripts\Navigator.cs" />
     <Compile Include="Assets\Resources\Scripts\Player.cs" />
     <Compile Include="Assets\Resources\Scripts\PlayerInfo.cs" />
