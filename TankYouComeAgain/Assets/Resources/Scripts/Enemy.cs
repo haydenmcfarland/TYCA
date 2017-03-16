@@ -28,6 +28,7 @@ public class Enemy : NetworkBehaviour
     public float projectileSpeed = 10f;
     public float stunTime = 5f;
     public float timer = 0;
+    public float rotMult = 200f;
 
     /* DROP IN GAMEOBJECTS */
     public GameObject spawnPoint;
@@ -142,15 +143,15 @@ public class Enemy : NetworkBehaviour
 
     private void FollowTarget(Transform target, float stopDistance, float moveSpeed)
     {
-        Vector3 vectorToTarget = target.position - transform.position;
-        float angle = (Mathf.Atan2(vectorToTarget.y, vectorToTarget.x) * Mathf.Rad2Deg) - 90;
+        Vector3 rotVecDir = target.position - transform.position;
+        float angle = (Mathf.Atan2(rotVecDir.y, rotVecDir.x) * Mathf.Rad2Deg) - 90;
         Quaternion q = Quaternion.AngleAxis(angle, Vector3.forward);
-        transform.rotation = Quaternion.Slerp(transform.rotation, q, Time.deltaTime * 200.0f);
+        transform.rotation = Quaternion.Slerp(transform.rotation, q, Time.deltaTime * rotMult);
 
         if (Vector2.Distance(transform.position, target.position) > stopDistance)
         {
             Vector2 dir = (target.position - transform.position).normalized;
-            rb.velocity = dir * 1.0f;
+            rb.velocity = dir;
         }
         else
         {
