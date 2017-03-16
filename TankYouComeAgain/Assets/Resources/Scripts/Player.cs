@@ -257,6 +257,7 @@ public class Player : NetworkBehaviour {
 
         rb.MoveRotation(rb.rotation - rotationSpeed);
         rb.velocity = transform.up * moveSpeed;
+        body.GetComponent<Animator>().SetFloat("Velocity", rb.velocity.magnitude);
 
     }
 
@@ -328,6 +329,7 @@ public class Player : NetworkBehaviour {
         }
     }
     void UpdateSprites() {
+
         shield.SetActive(shielded);
         model.SetActive(alive);
         if (!alive) {

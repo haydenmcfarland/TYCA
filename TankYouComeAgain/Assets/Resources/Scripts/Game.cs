@@ -117,7 +117,7 @@ public class Game : MonoBehaviour {
     Player[] DetermineWinner() {
         // determines the winner based on who has the highest score and returns that Player
         Player[] winner = new Player[MAX_PLAYERS];
-        int maxScore = 0;
+        float maxScore = -9999;
         int currIndex = 0;
         foreach(Player p in players) {
             if(p && p.kills - p.deaths > maxScore) {

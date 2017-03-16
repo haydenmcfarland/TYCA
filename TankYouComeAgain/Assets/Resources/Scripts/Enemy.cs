@@ -157,7 +157,9 @@ public class Enemy : NetworkBehaviour
                 CmdFire();
                 timer = 0;
             }
-                
+
+            body.GetComponent<Animator>().SetFloat("Velocity", rb.velocity.magnitude);
+
         }
             
     }
@@ -237,10 +239,9 @@ public class Enemy : NetworkBehaviour
         alive = false;
         canMove = false;
         CmdDeathFlag();
+        infoCanvas.SetActive(false);
         yield return new WaitForSeconds(5.0f);
-        health = MAX_HEALTH;
-        alive = true;
-        canMove = true;
+        NetworkServer.Destroy(gameObject);
     }
 }
 
