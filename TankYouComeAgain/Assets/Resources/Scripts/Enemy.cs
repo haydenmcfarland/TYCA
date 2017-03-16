@@ -56,7 +56,6 @@ public class Enemy : NetworkBehaviour
     Rigidbody2D rb;
     GameObject model;
     Player[] players;
-    AudioSource clip;
         
     // Added for movement smoothing
     void OnSerializeNetworkView(BitStream stream, NetworkMessageInfo info)
@@ -93,7 +92,6 @@ public class Enemy : NetworkBehaviour
         enemyNameText.text = enemyName;
         infoRot = infoCanvas.transform.rotation;
         infoPos = infoCanvas.transform.localPosition;
-        clip = GetComponent<AudioSource>();
 
         /* GATHER PLAYERS FOR MOVEMENT */
         players = GameObject.FindObjectsOfType<Player>();
@@ -106,6 +104,9 @@ public class Enemy : NetworkBehaviour
         if (Game.instance.GameOver())
         {
             rb.velocity = Vector3.zero;
+            return;
+        }
+        if (isLocalPlayer) {
             return;
         }
 

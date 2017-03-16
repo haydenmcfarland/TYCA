@@ -12,9 +12,13 @@ public class EnemySpawner : NetworkBehaviour
 
     private void Update()
     {
-        SpawnEnemy();
+        if (!isLocalPlayer) {
+            return;
+        }
+        CmdSpawnEnemy();
     }
-    void SpawnEnemy()
+    [Command]
+    void CmdSpawnEnemy()
     {
         if (enemyObj == null)
         {

@@ -141,6 +141,7 @@
     <None Include="Assets\PixelPerfectCamera\background_art_license.txt" />
     <None Include="Assets\Resources\howtoplay.txt" />
     <None Include="Assets\Tiled2Unity\Imported\Level1.tiled2unity.xml" />
+    <None Include="Assets\Tiled2Unity\Imported\Map.tiled2unity.xml" />
     <None Include="Assets\Tiled2Unity\Imported\_ReadMe.txt" />
     <None Include="Assets\Tiled2Unity\Imported\test.tiled2unity.xml" />
     <None Include="Assets\Tiled2Unity\License.txt" />
