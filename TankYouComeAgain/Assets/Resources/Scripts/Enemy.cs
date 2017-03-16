@@ -28,6 +28,7 @@ public class Enemy : NetworkBehaviour {
     public float stunTime = 5f;
     public float timer = 0;
     public float rotMult = 200f;
+    public float deathTime = 5f;
 
     /* DROP IN GAMEOBJECTS */
     public GameObject spawnPoint;
@@ -112,7 +113,7 @@ public class Enemy : NetworkBehaviour {
 
     [Command]
     void CmdFire() {
-        GameObject instantiatedProjectile = (GameObject)Instantiate(projectile, spawnPoint.transform.position, Quaternion.identity);
+        GameObject instantiatedProjectile = Instantiate(projectile, spawnPoint.transform.position, Quaternion.identity);
         Rigidbody2D prb = instantiatedProjectile.GetComponent<Rigidbody2D>();
         prb.velocity = transform.up * projectileSpeed;
         prb.velocity += rb.velocity;
@@ -120,14 +121,14 @@ public class Enemy : NetworkBehaviour {
         float angle = Mathf.Atan2(transform.up.y, transform.up.x) * Mathf.Rad2Deg;
         prb.transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
 
-        // enemey is considered a null owner as it is not a player (no broadcast messages and no scoring)
+        // enemy is considered a null owner as it is not a player (no broadcast messages and no scoring)
         instantiatedProjectile.GetComponent<Projectile>().owner = null;
         NetworkServer.Spawn(instantiatedProjectile);
     }
 
     [Command]
     void CmdDeathFlag() {
-        GameObject instantiatedDeathFlag = (GameObject)Instantiate(deathFlag, transform.position, Quaternion.identity);
+        GameObject instantiatedDeathFlag = Instantiate(deathFlag, transform.position, Quaternion.identity);
         NetworkServer.Spawn(instantiatedDeathFlag);
     }
 
@@ -182,22 +183,40 @@ public class Enemy : NetworkBehaviour {
         healthBarMiniRect.anchorMax = new Vector2(healthBarMiniRect.anchorMin.x + 0.5f * (health) / MAX_HEALTH, healthBarMiniRect.anchorMax.y);
         body.GetComponent<Animator>().SetFloat("Velocity", rb.velocity.magnitude);
     }
-
-    void OnCollisionEnter2D(Collision2D collision) {
-        if (!invulnerable && collision.gameObject.CompareTag("Projectile") && collision.gameObject.GetComponent<Projectile>().owner != null) {
-            health -= 10.0f;
-
-            if (health < 0)
-                StartCoroutine(Death(collision.gameObject.GetComponent<Projectile>().owner));
-            else
-                StartCoroutine(Flash());
+    public void Damage(float damage, Player killer) {
+        if (!isServer || invulnerable) {
+            return;
         }
+        health -= damage;
+        if (health <= 0 && alive) {
+            StartCoroutine(Death(killer));
+        }
+    }
+    void OnCollisionEnter2D(Collision2D collision) {
+        if (!invulnerable && collision.gameObject.CompareTag("Projectile")) {
+
+            Projectile p = collision.gameObject.GetComponent<Projectile>();
+            Damage(p.damage, p.owner);
+            StartCoroutine(Flash());
+        }
+        if (!invulnerable && collision.gameObject.CompareTag("Grenade")) {
+
+            Grenade g = collision.gameObject.GetComponent<Grenade>();
+            Damage(g.damage, g.owner);
+            Stun();
+            StartCoroutine(Flash());
+        }
+    }
+    [ClientRpc]
+    void RpcRespawn() {
+        NetworkStartPosition[] spawnPoints = FindObjectsOfType<NetworkStartPosition>();
+        transform.position = spawnPoints[UnityEngine.Random.Range(0, spawnPoints.Length)].transform.position;
     }
 
     IEnumerator Flash() {
         invulnerable = true;
         body.GetComponent<SpriteRenderer>().color = Color.red;
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(0.1f);
         body.GetComponent<SpriteRenderer>().color = playerColor;
         invulnerable = false;
     }
@@ -214,11 +233,17 @@ public class Enemy : NetworkBehaviour {
     IEnumerator Death(Player killer) {
         alive = false;
         canMove = false;
-        killer.kills++;
-        infoCanvas.SetActive(false);
         CmdDeathFlag();
-        yield return new WaitForSeconds(5.0f);
-        NetworkServer.Destroy(gameObject);
+        if (killer) {
+            killer.kills++;
+        }
+        infoCanvas.SetActive(false);
+        yield return new WaitForSeconds(deathTime);
+        health = MAX_HEALTH;
+        alive = true;
+        canMove = true;
+        RpcRespawn();
+        infoCanvas.SetActive(true);
     }
 }
 

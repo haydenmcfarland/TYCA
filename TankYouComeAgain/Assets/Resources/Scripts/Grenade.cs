@@ -29,6 +29,10 @@ public class Grenade : NetworkBehaviour {
         if (col.gameObject.CompareTag("Player") && !col.gameObject.GetComponentInParent<Player>().invulnerable && col.gameObject.GetComponentInParent<Player>()!= owner) {
             Explosion();
         }
+
+        if (col.gameObject.CompareTag("Enemy") && !col.gameObject.GetComponentInParent<Enemy>().invulnerable) {
+            Explosion();
+        }
     }
 
     IEnumerator Explode() {
@@ -48,6 +52,11 @@ public class Grenade : NetworkBehaviour {
                 Player p = hit.gameObject.GetComponentInParent<Player>();
                 p.Stun();
                 p.Damage(damage, owner);
+            }
+            if (hit.gameObject.CompareTag("Enemy") && !hit.gameObject.GetComponentInParent<Enemy>().invulnerable) {
+                Enemy e = hit.gameObject.GetComponentInParent<Enemy>();
+                e.Stun();
+                e.Damage(damage, owner);
             }
         }
         rb.velocity = Vector3.zero;

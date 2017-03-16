@@ -6,18 +6,40 @@ using UnityEngine.UI;
 public class Timer : MonoBehaviour {
     public const string TIME_STR = "Time Remaining: ";
     public float duration;
+    public Font font;
+    public int fontSize;
+    public Vector2 minAnchor;
+    public Vector2 maxAnchor;
     Text timerText;
     float timeLeft;
+    GameObject canvas;
 	// Use this for initialization
 	void Start () {
         timeLeft = duration;
-        timerText = transform.Find("Canvas/Timer Text").gameObject.GetComponent<Text>();
+        canvas = transform.Find("Canvas").gameObject;
+        if (!canvas) {
+            canvas = new GameObject("Canvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
+            canvas.transform.parent = transform.parent;
+        }
+        
+        GameObject timerTextGO = new GameObject("Timer Text");
+        timerText = timerTextGO.AddComponent<Text>();
+        timerText.font = font;
+        timerText.fontSize = fontSize;
+        RectTransform rect = timerTextGO.GetComponent<RectTransform>();
+        timerTextGO.transform.SetParent(canvas.transform, false);
+        rect.anchorMin = minAnchor;
+        rect.anchorMax = maxAnchor;
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
     }
 	
 	// Update is called once per frame
 	void Update () {
-        timeLeft -= Time.deltaTime;
-        timerText.text = TIME_STR + TimeToString(timeLeft);
+        if (!Expired()) {
+            timeLeft -= Time.deltaTime;
+            timerText.text = TIME_STR + TimeToString(timeLeft);
+        }
     }
 
     string TimeToString(float time) {

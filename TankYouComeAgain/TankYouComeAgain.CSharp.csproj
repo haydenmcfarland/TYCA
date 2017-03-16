@@ -92,6 +92,7 @@
     <Compile Include="Assets\PixelPerfectCamera\Scripts\PixelPerfectCamera.cs" />
     <Compile Include="Assets\PixelPerfectCamera\Scripts\PixelSnap.cs" />
     <Compile Include="Assets\PixelPerfectCamera\Scripts\Scroller.cs" />
+    <Compile Include="Assets\Resources\Scripts\Broadcast.cs" />
     <Compile Include="Assets\Resources\Scripts\DeathFlag.cs" />
     <Compile Include="Assets\Resources\Scripts\Enemy.cs" />
     <Compile Include="Assets\Resources\Scripts\EnemySpawner.cs" />

@@ -22,13 +22,6 @@ public class Projectile : NetworkBehaviour {
     }
 
     void OnCollisionEnter2D(Collision2D collision) {
-        if (collision.gameObject.CompareTag("Player") && collision.gameObject.GetComponent<Player>() != owner) {
-            if (isServer) {
-                Player p = collision.gameObject.GetComponent<Player>();
-                p.Damage(damage, owner);
-            }
-        }
-
         StartCoroutine(PrettyDelete());
     }
 
