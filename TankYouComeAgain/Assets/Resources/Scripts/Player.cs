@@ -384,9 +384,12 @@ public class Player : NetworkBehaviour {
         alive = false;
         canMove = false;
         CmdDeathFlag();
-        broadcast = killer.playerName + " has slain " + playerName;
+        if (killer != null)
+        {
+            broadcast = killer.playerName + " has slain " + playerName;
+            killer.kills++;
+        }
         deaths++;
-        killer.kills++;
         yield return new WaitForSeconds(deathTime);
         health = MAX_HEALTH;
         RpcRespawn();
