@@ -98,6 +98,7 @@
     <Compile Include="Assets\Resources\Scripts\EnemySpawner.cs" />
     <Compile Include="Assets\Resources\Scripts\Game.cs" />
     <Compile Include="Assets\Resources\Scripts\Grenade.cs" />
+    <Compile Include="Assets\Resources\Scripts\Instructions.cs" />
     <Compile Include="Assets\Resources\Scripts\LevelLoad.cs" />
     <Compile Include="Assets\Resources\Scripts\Mutable.cs" />
     <Compile Include="Assets\Resources\Scripts\Navigator.cs" />
