@@ -96,6 +96,9 @@ public class Player : NetworkBehaviour {
     /* PLAYER OBJECT */
     Rigidbody2D rb;
     GameObject model;
+    public Sprite firstBodyFrame;
+    public Sprite secondBodyFrame;
+    Sprite bodySprite;
 
     AudioSource clip;
     // Use for local player initialization
@@ -151,6 +154,7 @@ public class Player : NetworkBehaviour {
         healthBarMiniRect = healthBarMini.GetComponent<RectTransform>();
         healthBarMini.GetComponent<Image>().color = playerColor;
         barrel.GetComponent<SpriteRenderer>().color = playerColor;
+        bodySprite = body.GetComponent<SpriteRenderer>().sprite;
         body.GetComponent<SpriteRenderer>().color = playerColor;
         playerNameText.text = playerName;
         infoRot = infoCanvas.transform.rotation;
