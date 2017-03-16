@@ -4,8 +4,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
 
-public class Enemy : NetworkBehaviour
-{
+public class Enemy : NetworkBehaviour {
 
     /* CONST VARIABLES */
     public const int NUM_ABILITIES = 4;
@@ -56,10 +55,9 @@ public class Enemy : NetworkBehaviour
     Rigidbody2D rb;
     GameObject model;
     Player[] players;
-        
+
     // Added for movement smoothing
-    void OnSerializeNetworkView(BitStream stream, NetworkMessageInfo info)
-    {
+    void OnSerializeNetworkView(BitStream stream, NetworkMessageInfo info) {
         Vector3 syncPos = rb.position;
         Vector3 velocity = rb.velocity;
         float rotation = rb.rotation;
@@ -70,8 +68,7 @@ public class Enemy : NetworkBehaviour
         stream.Serialize(ref rotation);
         stream.Serialize(ref angVel);
 
-        if (stream.isReading)
-        {
+        if (stream.isReading) {
             rb.position = syncPos;
             rb.velocity = velocity;
             rb.rotation = rotation;
@@ -79,8 +76,7 @@ public class Enemy : NetworkBehaviour
         }
     }
 
-    void Start()
-    {
+    void Start() {
         body.GetComponent<NetworkAnimator>().SetParameterAutoSend(0, true);
         rb = GetComponent<Rigidbody2D>();
         model = transform.Find("Model").gameObject;
@@ -95,33 +91,27 @@ public class Enemy : NetworkBehaviour
 
         /* GATHER PLAYERS FOR MOVEMENT */
         players = GameObject.FindObjectsOfType<Player>();
-           
+
     }
 
-    void Update()
-    {
+    void Update() {
 
-        if (Game.instance.GameOver())
-        {
+        if (Game.instance.GameOver()) {
             rb.velocity = Vector3.zero;
             return;
         }
-        if (isLocalPlayer) {
-            return;
+        if (isServer) {
+            GetMovement();
         }
-
-        GetMovement();
     }
 
-    private void LateUpdate()
-    {
+    private void LateUpdate() {
         // need late update to correct issues with physics
         UpdateSprites();
     }
 
     [Command]
-    void CmdFire()
-    {
+    void CmdFire() {
         GameObject instantiatedProjectile = (GameObject)Instantiate(projectile, spawnPoint.transform.position, Quaternion.identity);
         Rigidbody2D prb = instantiatedProjectile.GetComponent<Rigidbody2D>();
         prb.velocity = transform.up * projectileSpeed;
@@ -136,69 +126,56 @@ public class Enemy : NetworkBehaviour
     }
 
     [Command]
-    void CmdDeathFlag()
-    {
+    void CmdDeathFlag() {
         GameObject instantiatedDeathFlag = (GameObject)Instantiate(deathFlag, transform.position, Quaternion.identity);
         NetworkServer.Spawn(instantiatedDeathFlag);
     }
 
-    private void FollowTarget(Transform target, float stopDistance, float moveSpeed)
-    {
+    private void FollowTarget(Transform target, float stopDistance, float moveSpeed) {
         Vector3 rotVecDir = target.position - transform.position;
         float angle = (Mathf.Atan2(rotVecDir.y, rotVecDir.x) * Mathf.Rad2Deg) - 90;
         Quaternion q = Quaternion.AngleAxis(angle, Vector3.forward);
         transform.rotation = Quaternion.Slerp(transform.rotation, q, Time.deltaTime * rotMult);
 
-        if (Vector2.Distance(transform.position, target.position) > stopDistance)
-        {
+        if (Vector2.Distance(transform.position, target.position) > stopDistance) {
             Vector2 dir = (target.position - transform.position).normalized;
             rb.velocity = dir;
-        }
-        else
-        {
+        } else {
             rb.velocity = Vector2.zero;
             timer += Time.deltaTime;
-            if (timer >= fireRate)
-            {
+            if (timer >= fireRate) {
                 CmdFire();
                 timer = 0;
             }
         }
-            
+
     }
 
-    private void GetMovement()
-    {
-        if (canMove)
-        {
+    private void GetMovement() {
+        if (canMove) {
             float min_dist = Mathf.Infinity;
             Transform target = null;
 
-            foreach (Player player in players)
-            {
+            foreach (Player player in players) {
                 float dist = Vector2.Distance(transform.position, player.transform.position);
-                if (dist < min_dist)
-                {
+                if (dist < min_dist) {
                     min_dist = dist;
                     target = player.transform;
                 }
             }
 
-            if (target != null)
+            if (target)
                 FollowTarget(target, 5.0f, 200.0f);
-        }
-        else
+        } else
             rb.velocity = Vector2.zero;
 
     }
 
-    public void Stun()
-    {
+    public void Stun() {
         StartCoroutine(Stunned());
     }
 
-    void UpdateSprites()
-    {
+    void UpdateSprites() {
         model.SetActive(alive);
         infoCanvas.transform.position = infoPos + transform.position;
         infoCanvas.transform.rotation = infoRot;
@@ -206,21 +183,18 @@ public class Enemy : NetworkBehaviour
         body.GetComponent<Animator>().SetFloat("Velocity", rb.velocity.magnitude);
     }
 
-    void OnCollisionEnter2D(Collision2D collision)
-    {
-        if (!invulnerable && collision.gameObject.CompareTag("Projectile") && collision.gameObject.GetComponent<Projectile>().owner != null)
-        {
+    void OnCollisionEnter2D(Collision2D collision) {
+        if (!invulnerable && collision.gameObject.CompareTag("Projectile") && collision.gameObject.GetComponent<Projectile>().owner != null) {
             health -= 10.0f;
 
             if (health < 0)
-                StartCoroutine(Death());
+                StartCoroutine(Death(collision.gameObject.GetComponent<Projectile>().owner));
             else
-                StartCoroutine(Flash());        
+                StartCoroutine(Flash());
         }
     }
 
-    IEnumerator Flash()
-    {
+    IEnumerator Flash() {
         invulnerable = true;
         body.GetComponent<SpriteRenderer>().color = Color.red;
         yield return new WaitForSeconds(0.5f);
@@ -228,8 +202,7 @@ public class Enemy : NetworkBehaviour
         invulnerable = false;
     }
 
-    IEnumerator Stunned()
-    {
+    IEnumerator Stunned() {
         canMove = false;
         rb.velocity = Vector3.zero;
         CancelInvoke();
@@ -238,12 +211,12 @@ public class Enemy : NetworkBehaviour
         canMove = true;
     }
 
-    IEnumerator Death()
-    {
+    IEnumerator Death(Player killer) {
         alive = false;
         canMove = false;
-        CmdDeathFlag();
+        killer.kills++;
         infoCanvas.SetActive(false);
+        CmdDeathFlag();
         yield return new WaitForSeconds(5.0f);
         NetworkServer.Destroy(gameObject);
     }

@@ -411,14 +411,17 @@ public class Player : NetworkBehaviour {
             broadcast = killer.playerName + " has slain " + playerName;
             killer.kills++;
         }
+        infoCanvas.SetActive(false);
+        CancelInvoke();
         deaths++;
         yield return new WaitForSeconds(deathTime);
         health = MAX_HEALTH;
         RpcRespawn();
+        broadcast = "";
+        yield return new WaitForEndOfFrame();
         alive = true;
         canMove = true;
-        broadcast = "";
-        broadcastText.text = broadcast;
+        infoCanvas.SetActive(true);
     }
 }
 
