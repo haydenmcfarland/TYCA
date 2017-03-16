@@ -6,9 +6,8 @@ using UnityEngine.UI;
 
 public class Game : MonoBehaviour {
     public const int MAX_PLAYERS = 4;
-    public const string TIME_STR = "Time Remaining: ";
+    public const string VOTE_STR = "Votes to Restart: ";
     public static Game instance;
-    public float gameDuration = 120f;
     public GameObject playerStats;
     public KeyCode exitKey = KeyCode.Escape;
     public KeyCode muteKey = KeyCode.M;
@@ -16,10 +15,10 @@ public class Game : MonoBehaviour {
     public bool muted = false;
     public Player[] players = new Player[MAX_PLAYERS];
     GameObject[] playerStatsGOs = new GameObject[MAX_PLAYERS];
-    int currIndex = 0;
-    float timer;
+    int numPlayers = 0;
+    public Timer timer;
     bool ended = false;
-    Text timerText;
+    Enemy enemy;
     Text gameOverText;
     GameObject scoreboard;
     GameObject playerStatsHolder;
@@ -27,11 +26,10 @@ public class Game : MonoBehaviour {
     // Use this for initialization
     void Start() {
         instance = this;
-        timer = gameDuration;
-        timerText = transform.Find("Canvas/Timer Text").gameObject.GetComponent<Text>();
         gameOverText = transform.Find("Canvas/Game Over Text").gameObject.GetComponent<Text>();
         scoreboard = transform.Find("Canvas/Scoreboard").gameObject;
         playerStatsHolder = transform.Find("Canvas/Scoreboard/Player Stats").gameObject;
+        timer = GetComponent<Timer>();
         for (int i = 0; i < MAX_PLAYERS; ++i) {
             playerStatsGOs[i] = Instantiate(playerStats);
             playerStatsGOs[i].transform.SetParent(playerStatsHolder.transform, false);
@@ -39,6 +37,13 @@ public class Game : MonoBehaviour {
     }
 
     void Update() {
+        if (RestartGame()) {
+            foreach(Player p in players) {
+                if (p) {
+                    p.Restart();
+                }
+            }
+        }
         if (GameOver()) {
             if (!ended) {
                 StartCoroutine(EndOfGame());
@@ -54,12 +59,11 @@ public class Game : MonoBehaviour {
             muted = !muted;
         }
         scoreboard.SetActive(Input.GetKey(scoreboardKey));
-        timer -= Time.deltaTime;
-        timerText.text = TIME_STR + TimeToString(timer);
+
     }
     public int AssignId() {
         // used by the Game class that is on the server, so that each Player will get a unique id
-        return currIndex++;
+        return numPlayers++;
     }
     public void RegisterPlayer(Player p) {
         // adds the player to the list
@@ -67,13 +71,33 @@ public class Game : MonoBehaviour {
     }
 
     public bool GameOver() {
-        return timer <= 0;
+        return timer.Expired();
+    }
+
+    public bool RestartGame() {
+        return GetNumVotes() == GetNumPlayers();    
+    }
+
+    public int GetNumVotes() {
+        int total = 0;
+        for (int i = 0; i < players.Length; ++i) {
+            if (players[i] && players[i].voteToRestart) {
+                total++;
+            }
+        }
+        return total;
     }
 
     IEnumerator EndOfGame() {
         // Coroutine called when the game ends
         Player[] winner = DetermineWinner();
-        if (winner.Length == 1) {
+        int winners = 0;
+        for(int i = 0; i < winner.Length; ++i) {
+            if (winner[i]) {
+                winners++;
+            }
+        }
+        if (winners == 1) {
             gameOverText.text = winner[0].playerName + " wins!";
         } else {
             string players = "";
@@ -105,13 +129,15 @@ public class Game : MonoBehaviour {
         }
     }
 
-    string TimeToString(float time) {
-        // turns float in seconds to string in format 'mm:ss.s'
-        int minutes = (int)Mathf.Floor(time / 60f);
-        minutes = Mathf.Clamp(minutes, 0, minutes);
-        float seconds = time - minutes * 60f;
-        string secondsStr = (seconds < 10 ? "0" : "") + seconds.ToString("F1");
-        return minutes + ":" + secondsStr;
+    public int GetNumPlayers() {
+        // for some reason when I call length of the player list it is giving me 4 always (the capacity of the array), so this dumb code works
+        int count = 0;
+        for(int i = 0; i < players.Length; ++i) {
+            if (players[i]) {
+                count++;
+            }
+        }
+        return count;
     }
 
     Player[] DetermineWinner() {

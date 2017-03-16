@@ -93,6 +93,8 @@
     <Compile Include="Assets\PixelPerfectCamera\Scripts\PixelSnap.cs" />
     <Compile Include="Assets\PixelPerfectCamera\Scripts\Scroller.cs" />
     <Compile Include="Assets\Resources\Scripts\DeathFlag.cs" />
+    <Compile Include="Assets\Resources\Scripts\Enemy.cs" />
+    <Compile Include="Assets\Resources\Scripts\EnemySpawner.cs" />
     <Compile Include="Assets\Resources\Scripts\Game.cs" />
     <Compile Include="Assets\Resources\Scripts\Grenade.cs" />
     <Compile Include="Assets\Resources\Scripts\LevelLoad.cs" />
@@ -101,6 +103,7 @@
     <Compile Include="Assets\Resources\Scripts\Player.cs" />
     <Compile Include="Assets\Resources\Scripts\PlayerInfo.cs" />
     <Compile Include="Assets\Resources\Scripts\Projectile.cs" />
+    <Compile Include="Assets\Resources\Scripts\Timer.cs" />
     <Compile Include="Assets\Tiled2Unity\Scripts\Runtime\CircleObject.cs" />
     <Compile Include="Assets\Tiled2Unity\Scripts\Runtime\ImportBehaviour.cs" />
     <Compile Include="Assets\Tiled2Unity\Scripts\Runtime\Layer.cs" />

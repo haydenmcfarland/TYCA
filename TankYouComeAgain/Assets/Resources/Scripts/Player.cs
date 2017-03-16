@@ -12,6 +12,7 @@ public class Player : NetworkBehaviour {
     public const float MAX_HEALTH = 100f;
     public const int MAX_LIVES = 5;
     public const string DEATH_MESSAGE = "You died! Respawn in ";
+    public const string VOTE_STR = "Votes to Restart: ";
 
     /* NETWORK SYNC VARIABLES */
     [SyncVar]
@@ -34,6 +35,10 @@ public class Player : NetworkBehaviour {
     bool alive = true;
     [SyncVar]
     public string broadcast;
+    [SyncVar]
+    public bool voteToRestart = false;
+    [SyncVar]
+    public int votes;
 
     /* TIMING/ABILITY VARIABLES */
     float timer;
@@ -82,6 +87,7 @@ public class Player : NetworkBehaviour {
     GameObject deathOverlay;
     Text deathText;
     Text broadcastText;
+    Text voteText;
 
     /* PLAYER INFO DISPLAY */
     public GameObject infoCanvas;
@@ -92,18 +98,16 @@ public class Player : NetworkBehaviour {
     Quaternion infoRot;
     Vector3 infoPos;
 
-    
+
     /* PLAYER OBJECT */
     Rigidbody2D rb;
     GameObject model;
     public Sprite firstBodyFrame;
     public Sprite secondBodyFrame;
-    Sprite bodySprite;
 
     AudioSource clip;
     // Use for local player initialization
-    public override void OnStartLocalPlayer()
-    {
+    public override void OnStartLocalPlayer() {
         for (int i = 0; i < NUM_ABILITIES; ++i) {
             abilityTimers[i] = 0;
             currAbilityCooldowns[i] = abilityCooldowns[i];
@@ -111,6 +115,7 @@ public class Player : NetworkBehaviour {
             abilityCDText[i] = GameObject.Find("Canvas/HUD/Ability " + (i + 1) + "/Cooldown Text").GetComponent<Text>();
         }
         healthBar = GameObject.Find("Canvas/HUD/Health Bar");
+        voteText = GameObject.Find("Canvas/Vote Text").GetComponent<Text>();
         healthBarRect = healthBar.GetComponent<RectTransform>();
         deathOverlay = GameObject.Find("Canvas/Death Overlay");
         deathText = GameObject.Find("Canvas/Death Overlay/Text").GetComponent<Text>();
@@ -118,10 +123,9 @@ public class Player : NetworkBehaviour {
         spawnPoints = FindObjectsOfType<NetworkStartPosition>();
 
     }
-    
+
     // Added for movement smoothing
-    void OnSerializeNetworkView(BitStream stream, NetworkMessageInfo info)
-    {
+    void OnSerializeNetworkView(BitStream stream, NetworkMessageInfo info) {
         Vector3 syncPos = rb.position;
         Vector3 velocity = rb.velocity;
         float rotation = rb.rotation;
@@ -132,8 +136,7 @@ public class Player : NetworkBehaviour {
         stream.Serialize(ref rotation);
         stream.Serialize(ref angVel);
 
-        if (stream.isReading)
-        {
+        if (stream.isReading) {
             rb.position = syncPos;
             rb.velocity = velocity;
             rb.rotation = rotation;
@@ -154,7 +157,6 @@ public class Player : NetworkBehaviour {
         healthBarMiniRect = healthBarMini.GetComponent<RectTransform>();
         healthBarMini.GetComponent<Image>().color = playerColor;
         barrel.GetComponent<SpriteRenderer>().color = playerColor;
-        bodySprite = body.GetComponent<SpriteRenderer>().sprite;
         body.GetComponent<SpriteRenderer>().color = playerColor;
         playerNameText.text = playerName;
         infoRot = infoCanvas.transform.rotation;
@@ -163,11 +165,13 @@ public class Player : NetworkBehaviour {
     }
 
     // Update is called once per frame
-    void Update()
-    {
+    void Update() {
         if (Game.instance.GameOver()) {
             rb.velocity = Vector3.zero;
             return;
+        }
+        if (isServer) {
+            votes = Game.instance.GetNumVotes();
         }
         if (Input.GetKey(KeyCode.W)) {
             if (Input.GetKey(KeyCode.E)) {
@@ -179,13 +183,14 @@ public class Player : NetworkBehaviour {
             }
         }
         UpdateSprites();
-        if (!isLocalPlayer)
-        {
+        if (!isLocalPlayer) {
             return;
         }
-        if (canMove)
-        {
+        if (canMove) {
             GetMovement();
+        }
+        if (Input.GetKeyDown(KeyCode.R)) {
+            CmdVoteToRestart();
         }
         HandleAbilities();
         UpdateUI();
@@ -206,6 +211,17 @@ public class Player : NetworkBehaviour {
             // Set the player’s position to the chosen spawn point
             transform.position = sp;
         }
+    }
+
+    public void Restart() {
+        //reset variables
+        deaths = 0;
+        kills = 0;
+        health = MAX_HEALTH;
+        voteToRestart = false;
+        Game.instance.timer.Reset();
+        // Set the player’s position to its original spawn point
+        transform.position = GameObject.Find("Network Spawn " + (id + 1)).transform.position;
     }
 
     [Command]
@@ -241,6 +257,11 @@ public class Player : NetworkBehaviour {
         StartCoroutine(Ultimate());
     }
 
+    [Command]
+    void CmdVoteToRestart() {
+        voteToRestart = true;
+    }
+
     private void GetMovement() {
 
         if (Input.GetAxis("Vertical") != 0) {
@@ -249,11 +270,10 @@ public class Player : NetworkBehaviour {
             moveSpeed = 0;
         }
 
-        if (Input.GetAxis("Horizontal") != 0)
-        {
+        if (Input.GetAxis("Horizontal") != 0) {
             rotationSpeed = Time.deltaTime * Input.GetAxis("Horizontal") * rotMult;
         }
-            
+
 
         rb.MoveRotation(rb.rotation - rotationSpeed);
         rb.velocity = transform.up * moveSpeed;
@@ -321,6 +341,7 @@ public class Player : NetworkBehaviour {
     void UpdateUI() {
         healthBarRect.anchorMax = new Vector2(healthBarRect.anchorMin.x + 0.35f * (health) / MAX_HEALTH, healthBarRect.anchorMax.y);
         deathOverlay.SetActive(!alive);
+        voteText.text = VOTE_STR + votes + "/" + Game.instance.GetNumPlayers();
         if (!alive) {
             timer -= Time.deltaTime;
             deathText.text = DEATH_MESSAGE + (int)timer;
@@ -386,8 +407,7 @@ public class Player : NetworkBehaviour {
         alive = false;
         canMove = false;
         CmdDeathFlag();
-        if (killer != null)
-        {
+        if (killer != null) {
             broadcast = killer.playerName + " has slain " + playerName;
             killer.kills++;
         }
