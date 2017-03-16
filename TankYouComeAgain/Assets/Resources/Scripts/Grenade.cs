@@ -45,10 +45,9 @@ public class Grenade : NetworkBehaviour {
         Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, radius);
         foreach (Collider2D hit in hits) {
             if (hit.gameObject.CompareTag("Player") && !hit.gameObject.GetComponentInParent<Player>().invulnerable && hit.gameObject.GetComponentInParent<Player>() != owner) {
-                // players have 2 separate colliders, so they get damaged twice
                 Player p = hit.gameObject.GetComponentInParent<Player>();
                 p.Stun();
-                p.Damage(damage / 2, owner);
+                p.Damage(damage, owner);
             }
         }
         rb.velocity = Vector3.zero;

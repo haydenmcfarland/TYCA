@@ -151,6 +151,7 @@ public class Player : NetworkBehaviour {
         healthBarMiniRect = healthBarMini.GetComponent<RectTransform>();
         healthBarMini.GetComponent<Image>().color = playerColor;
         barrel.GetComponent<SpriteRenderer>().color = playerColor;
+        body.GetComponent<SpriteRenderer>().color = playerColor;
         playerNameText.text = playerName;
         infoRot = infoCanvas.transform.rotation;
         infoPos = infoCanvas.transform.localPosition;
@@ -207,6 +208,8 @@ public class Player : NetworkBehaviour {
     void CmdFire() {
         GameObject instantiatedProjectile = (GameObject)Instantiate(projectile, spawnPoint.transform.position, Quaternion.identity);
         Rigidbody2D prb = instantiatedProjectile.GetComponent<Rigidbody2D>();
+        instantiatedProjectile.transform.rotation = transform.rotation;
+        instantiatedProjectile.transform.Rotate(new Vector3(0, 0, 1), 90);
         prb.velocity = spawnPoint.transform.up * projectileSpeed;
         prb.velocity += rb.velocity;
         instantiatedProjectile.GetComponent<Projectile>().owner = this;
