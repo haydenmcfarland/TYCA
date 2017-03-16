@@ -28,6 +28,7 @@ public class Enemy : NetworkBehaviour
     public float projectileSpeed = 10f;
     public float stunTime = 5f;
     public float timer = 0;
+    public float rotMult = 200f;
 
     /* DROP IN GAMEOBJECTS */
     public GameObject spawnPoint;
@@ -55,7 +56,6 @@ public class Enemy : NetworkBehaviour
     Rigidbody2D rb;
     GameObject model;
     Player[] players;
-
     AudioSource clip;
         
     // Added for movement smoothing
@@ -82,6 +82,7 @@ public class Enemy : NetworkBehaviour
 
     void Start()
     {
+        body.GetComponent<NetworkAnimator>().SetParameterAutoSend(0, true);
         rb = GetComponent<Rigidbody2D>();
         model = transform.Find("Model").gameObject;
 
@@ -94,13 +95,14 @@ public class Enemy : NetworkBehaviour
         infoPos = infoCanvas.transform.localPosition;
         clip = GetComponent<AudioSource>();
 
-        /* Gather Players */
+        /* GATHER PLAYERS FOR MOVEMENT */
         players = GameObject.FindObjectsOfType<Player>();
            
     }
 
     void Update()
     {
+
         if (Game.instance.GameOver())
         {
             rb.velocity = Vector3.zero;
@@ -108,11 +110,11 @@ public class Enemy : NetworkBehaviour
         }
 
         GetMovement();
-        UpdateSprites();
     }
 
     private void LateUpdate()
     {
+        // need late update to correct issues with physics
         UpdateSprites();
     }
 
@@ -121,10 +123,13 @@ public class Enemy : NetworkBehaviour
     {
         GameObject instantiatedProjectile = (GameObject)Instantiate(projectile, spawnPoint.transform.position, Quaternion.identity);
         Rigidbody2D prb = instantiatedProjectile.GetComponent<Rigidbody2D>();
-        prb.velocity = spawnPoint.transform.up * projectileSpeed;
+        prb.velocity = transform.up * projectileSpeed;
         prb.velocity += rb.velocity;
 
-        // left the owner as null for now
+        float angle = Mathf.Atan2(transform.up.y, transform.up.x) * Mathf.Rad2Deg;
+        prb.transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+
+        // enemey is considered a null owner as it is not a player (no broadcast messages and no scoring)
         instantiatedProjectile.GetComponent<Projectile>().owner = null;
         NetworkServer.Spawn(instantiatedProjectile);
     }
@@ -138,15 +143,15 @@ public class Enemy : NetworkBehaviour
 
     private void FollowTarget(Transform target, float stopDistance, float moveSpeed)
     {
-        Vector3 vectorToTarget = target.position - transform.position;
-        float angle = (Mathf.Atan2(vectorToTarget.y, vectorToTarget.x) * Mathf.Rad2Deg) - 90;
+        Vector3 rotVecDir = target.position - transform.position;
+        float angle = (Mathf.Atan2(rotVecDir.y, rotVecDir.x) * Mathf.Rad2Deg) - 90;
         Quaternion q = Quaternion.AngleAxis(angle, Vector3.forward);
-        transform.rotation = Quaternion.Slerp(transform.rotation, q, Time.deltaTime * 200.0f);
+        transform.rotation = Quaternion.Slerp(transform.rotation, q, Time.deltaTime * rotMult);
 
         if (Vector2.Distance(transform.position, target.position) > stopDistance)
         {
             Vector2 dir = (target.position - transform.position).normalized;
-            rb.velocity = dir * 1.0f;
+            rb.velocity = dir;
         }
         else
         {
@@ -157,9 +162,6 @@ public class Enemy : NetworkBehaviour
                 CmdFire();
                 timer = 0;
             }
-
-            body.GetComponent<Animator>().SetFloat("Velocity", rb.velocity.magnitude);
-
         }
             
     }
@@ -185,9 +187,7 @@ public class Enemy : NetworkBehaviour
                 FollowTarget(target, 5.0f, 200.0f);
         }
         else
-        {
             rb.velocity = Vector2.zero;
-        }
 
     }
 
@@ -202,8 +202,8 @@ public class Enemy : NetworkBehaviour
         infoCanvas.transform.position = infoPos + transform.position;
         infoCanvas.transform.rotation = infoRot;
         healthBarMiniRect.anchorMax = new Vector2(healthBarMiniRect.anchorMin.x + 0.5f * (health) / MAX_HEALTH, healthBarMiniRect.anchorMax.y);
+        body.GetComponent<Animator>().SetFloat("Velocity", rb.velocity.magnitude);
     }
-
 
     void OnCollisionEnter2D(Collision2D collision)
     {
@@ -217,11 +217,14 @@ public class Enemy : NetworkBehaviour
                 StartCoroutine(Flash());        
         }
     }
+
     IEnumerator Flash()
     {
+        invulnerable = true;
         body.GetComponent<SpriteRenderer>().color = Color.red;
         yield return new WaitForSeconds(0.5f);
         body.GetComponent<SpriteRenderer>().color = playerColor;
+        invulnerable = false;
     }
 
     IEnumerator Stunned()
