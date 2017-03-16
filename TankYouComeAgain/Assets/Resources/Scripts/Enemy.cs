@@ -17,8 +17,6 @@ public class Enemy : NetworkBehaviour {
     [SyncVar]
     public float health = MAX_HEALTH;
     [SyncVar]
-    public bool invulnerable = false;
-    [SyncVar]
     public bool canMove = true;
     [SyncVar]
     bool alive = true;
@@ -184,7 +182,7 @@ public class Enemy : NetworkBehaviour {
         body.GetComponent<Animator>().SetFloat("Velocity", rb.velocity.magnitude);
     }
     public void Damage(float damage, Player killer) {
-        if (!isServer || invulnerable) {
+        if (!isServer) {
             return;
         }
         health -= damage;
@@ -193,13 +191,13 @@ public class Enemy : NetworkBehaviour {
         }
     }
     void OnCollisionEnter2D(Collision2D collision) {
-        if (!invulnerable && collision.gameObject.CompareTag("Projectile")) {
+        if (collision.gameObject.CompareTag("Projectile")) {
 
             Projectile p = collision.gameObject.GetComponent<Projectile>();
             Damage(p.damage, p.owner);
             StartCoroutine(Flash());
         }
-        if (!invulnerable && collision.gameObject.CompareTag("Grenade")) {
+        if (collision.gameObject.CompareTag("Grenade")) {
 
             Grenade g = collision.gameObject.GetComponent<Grenade>();
             Damage(g.damage, g.owner);
@@ -214,11 +212,9 @@ public class Enemy : NetworkBehaviour {
     }
 
     IEnumerator Flash() {
-        invulnerable = true;
         body.GetComponent<SpriteRenderer>().color = Color.red;
         yield return new WaitForSeconds(0.1f);
         body.GetComponent<SpriteRenderer>().color = playerColor;
-        invulnerable = false;
     }
 
     IEnumerator Stunned() {

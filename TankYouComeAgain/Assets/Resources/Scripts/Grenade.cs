@@ -30,7 +30,7 @@ public class Grenade : NetworkBehaviour {
             Explosion();
         }
 
-        if (col.gameObject.CompareTag("Enemy") && !col.gameObject.GetComponentInParent<Enemy>().invulnerable) {
+        if (col.gameObject.CompareTag("Enemy")) {
             Explosion();
         }
     }
@@ -53,7 +53,7 @@ public class Grenade : NetworkBehaviour {
                 p.Stun();
                 p.Damage(damage, owner);
             }
-            if (hit.gameObject.CompareTag("Enemy") && !hit.gameObject.GetComponentInParent<Enemy>().invulnerable) {
+            if (hit.gameObject.CompareTag("Enemy")) {
                 Enemy e = hit.gameObject.GetComponentInParent<Enemy>();
                 e.Stun();
                 e.Damage(damage, owner);

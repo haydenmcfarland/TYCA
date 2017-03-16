@@ -180,7 +180,7 @@ public class Player : NetworkBehaviour {
                 }
             }
         }
-        UpdateSprites();
+        
         if (!isLocalPlayer) {
             return;
         }
@@ -193,6 +193,11 @@ public class Player : NetworkBehaviour {
         HandleAbilities();
         UpdateUI();
         Camera.main.transform.position = new Vector3(transform.position.x, transform.position.y, Camera.main.transform.position.z);
+    }
+
+    void LateUpdate()
+    {
+        UpdateSprites();
     }
 
     [ClientRpc]
