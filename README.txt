@@ -21,6 +21,14 @@ The feeling we want to capture with TYCA is the fiery competition that can arise
 the number of players that can play, so we want the players to feel pressured into an all out war. Killing the other players should be fun
 and gratifying and death should start to induce ill will towards others.
 
+Bug Report:
+There are a few bugs that arise from network play that haven't been completely removed. The game is still playable.
+- Players sometimes spawn together
+- Timer sometimes can lose their synchronization during reset vote
+
+Other:
+- reset button is implemented through an online voting system during a match. All player must votein order to reset.
+
 Code References:
 NONE
 
