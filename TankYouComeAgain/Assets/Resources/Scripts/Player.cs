@@ -222,6 +222,7 @@ public class Player : NetworkBehaviour {
         kills = 0;
         health = MAX_HEALTH;
         voteToRestart = false;
+        alive = true;
         Game.instance.timer.Reset();
         // Set the player’s position to its original spawn point
         transform.position = spawnPoints[id].transform.position;
