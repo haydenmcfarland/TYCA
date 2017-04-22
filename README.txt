@@ -1,9 +1,9 @@
 Game 3 Submission
 -----------------
 Teammates:
-1. wbtseng	 : 22428172
-2. arakij	 : 56679814
-3. hmcfarla	 : 47923600
+1. wbtseng	 : -redacted-
+2. arakij	 : -redacted-
+3. hmcfarla	 : -redacted-
 
 Repository:
 https://github.com/haydenmcfarland/TankYouComeAgain 
