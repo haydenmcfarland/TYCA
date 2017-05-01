@@ -1,9 +1,9 @@
 Tank You Come Again - [Game 3]
 -----------------
 *Teammates*:
-1. wbtseng	 : -redacted-
-2. arakij	 : -redacted-
-3. hmcfarla	 : -redacted-
+- Wesley Tseng
+- Jeffrey Araki
+- Hayden McFarland
 
 *Summary*:
 
