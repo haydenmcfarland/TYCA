@@ -1,4 +1,4 @@
-#Game 3 Submission
+Game 3 Submission
 -----------------
 *Teammates*:
 1. wbtseng	 : -redacted-
