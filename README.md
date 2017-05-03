@@ -1,4 +1,4 @@
-# Tank You Come Again - [Game 3]
+# Tank You Come Again
 
 ![gameplay](https://github.com/haydenmcfarland/haydenmcfarland.me/blob/master/images/TYCA.gif?raw=true)
 
