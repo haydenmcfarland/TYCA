@@ -1,6 +1,6 @@
 # Tank You Come Again
 
-![gameplay](http://haydenmcfarland.me/img/TYCA.gif)
+![gameplay](http://www.haydenmcfarland.me/static/images/TYCA.gif)
 
 ### Teammates:
 
