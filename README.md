@@ -1,7 +1,6 @@
 # Tank You Come Again
 
-![gameplay](http://www.haydenmcfarland.me/static/images/TYCA.gif)
-
+![gameplay](https://preview.ibb.co/iLZfO5/t.gif)
 ### Teammates:
 
 - Wesley Tseng
